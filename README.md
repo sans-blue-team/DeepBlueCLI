@@ -1,7 +1,9 @@
 # DeepBlueCLI
 
 DeepBlueCLI 0.1 Beta
+
 Eric Conrad, Backshore Communications, LLC
+
 deepblue <at> backshore <dot> net
 
 Twitter: @eric_conrad
