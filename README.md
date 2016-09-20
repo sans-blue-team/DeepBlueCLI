@@ -1,9 +1,13 @@
 # DeepBlueCLI
 
 DeepBlueCLI 0.1 Beta
+
 Eric Conrad, Backshore Communications, LLC
+
 deepblue <at> backshore <dot> net
+
 Twitter: @eric_conrad
+
 http://ericconrad.com
 
 Sample evtx files are in the .\evtx directory
