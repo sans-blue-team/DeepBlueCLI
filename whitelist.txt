@@ -1,0 +1,9 @@
+# DeepBlueCLI command whitelist
+# Currently: one entry (regex) per line
+# Read as a CSV file for future growth (may want to add options to each entry)
+#
+# Include only regex CSV entries, or comments beginning with "#"
+#
+regex
+^"C:\\Program Files\\Google\\Chrome\\Application\\chrome\.exe"
+^"C:\\Program Files\\Google\\Update\\GoogleUpdate\.exe"
