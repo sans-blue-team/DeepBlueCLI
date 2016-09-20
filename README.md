@@ -19,7 +19,7 @@ Sample evtx files are in the .\evtx directory
 
 If you see this error:
 
-`.\DeepBlue.ps1 : File C:\Users\sec580\Desktop\DeepBlueCLI-0.1\DeepBlue.ps1 cannot be loaded because running scripts is
+`.\DeepBlue.ps1 : File .\DeepBlue.ps1 cannot be loaded because running scripts is
 disabled on this system. For more information, see about_Execution_Policies at
 http://go.microsoft.com/fwlink/?LinkID=135170.`
 
