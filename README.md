@@ -11,9 +11,7 @@ Sample evtx files are in the .\evtx directory
 ## Usage:
 
 
-`
-.\DeepBlue.ps1 <event log name> <evtx filename>
-`
+`.\DeepBlue.ps1 <event log name> <evtx filename>`
 
 ## Examples:
 
