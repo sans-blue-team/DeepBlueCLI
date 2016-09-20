@@ -17,6 +17,18 @@ Sample evtx files are in the .\evtx directory
 
 `.\DeepBlue.ps1 <event log name> <evtx filename>`
 
+If you see this error:
+
+`.\DeepBlue.ps1 : File C:\Users\sec580\Desktop\DeepBlueCLI-0.1\DeepBlue.ps1 cannot be loaded because running scripts is
+disabled on this system. For more information, see about_Execution_Policies at
+http://go.microsoft.com/fwlink/?LinkID=135170.`
+
+You must run Set-ExecutionPolicy as Administrator, here is an example:
+
+`Set-ExecutionPolicy RemoteSigned`
+
+See `get-help Set-ExecutionPolicy` for more options.
+
 ## Examples:
 
 ### Process local Windows security event log:
