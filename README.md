@@ -19,7 +19,7 @@ Sample evtx files are in the .\evtx directory
 
 ## Examples:
 
-Process local Windows security event log:
+### Process local Windows security event log:
 
 `.\DeepBlue.ps1`
 
@@ -27,7 +27,7 @@ or:
 
 `.\DeepBlue.ps1 -log security`
 
-Process local Windows system event log:
+### Process local Windows system event log:
 
 `.\DeepBlue.ps1 -log system`
 
@@ -35,7 +35,7 @@ or:
 
 `.\DeepBlue.ps1 "" system`
 
-Process evtx file:
+### Process evtx file:
 
 `.\DeepBlue.ps1 .\evtx\new-user-security.evtx`
 
