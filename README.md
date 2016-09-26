@@ -55,3 +55,6 @@ or:
 
 `.\DeepBlue.ps1 -file .\evtx\new-user-security.evtx`
 
+### **NEW**: Show verbose information during processing
+
+`.\DeepBlue.ps1 -Verbose -file .\evtx\metasploit-psexec-native-target-security.evtx`
