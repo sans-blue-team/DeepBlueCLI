@@ -66,8 +66,7 @@ function Main {
                 # A new process has been created. (Command Line Logging)
                 $commandline=$eventXML.Event.EventData.Data[8]."#text"
                 try {
-                    $tmp = (Check-Command $commandline $minlength $regexes $whitelist 0)
-                    $output += $tmp
+                    $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
                 } catch [System.Management.Automation.RuntimeException] {Write-Debug $_}
             }
             ElseIf ($event.id -eq 4720){
