@@ -49,8 +49,11 @@ function Main {
     $maxfailedlogons=100 # Alert after this many failed logons
     # Get the events:
     try{
-        # 4>`$null removes Verbose statement from output when user supplies -Verbose flag
-        $events = iex "Get-WinEvent -FilterHashtable $filter -ErrorAction Stop 4>`$null"
+        # Temporarily ignore Verbosity so Get-WinEvent doesn't print extra data
+        $OldVP = $VerbosePreference
+        $VerbosePreference = "SilentlyContinue"
+        $events = iex "Get-WinEvent -FilterHashtable $filter -ErrorAction Stop"
+        $VerbosePreference = $OldVP
     }
     catch {
         Write-Host "Get-WinEvent -FilterHashtable $filter -ErrorAction Stop"
