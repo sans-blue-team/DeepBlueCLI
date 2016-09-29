@@ -332,8 +332,8 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
     $obfu = Check-Obfu $commandline
     # check for suspicious commandline entries
     $regex = Check-Regex $commandline $regexes 0
-    if ($obfu -ne "") {$text += $obfu}
-    if ($regex -ne "") {$text += $regex}
+    if ($obfu.Length -gt 0) {$text += $obfu}
+    if ($regex.Length -gt 0) {$text += $regex}
     # Check for base64 encoded function, decode and print if found
     # This section is highly use case specific, other methods of base64 encoding and/or compressing may evade these checks
     if ($commandline -Match "\-enc.*[A-Za-z0-9/+=]{100}"){
