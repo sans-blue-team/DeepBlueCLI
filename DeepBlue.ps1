@@ -124,8 +124,10 @@ function Main {
                 $text = (Check-Regex $servicename $regexes 1)
                 if ($text){
                     Write-Verbose "  A service was installed on the system: $servicename"
-                    $output += @{"Message" = "Service created: $text"}
-                    $output += @{"Service Name" = $servicename}
+                    $output += @{
+                        "Message" = "Service created: $text";
+                        "Service Name" = $servicename
+                    }
                 }
                 # Check for suspicious cmd
                 $commandline=$eventXML.Event.EventData.Data[1]."#text"
@@ -175,9 +177,11 @@ function Main {
                     $message = $array[0]
                     $application = Remove-Spaces($array[3])
                     $username = Remove-Spaces($array[4])
-                    $output += @{"Message" = $message}
-                    $output += @{"Application" = $application}
-                    $output += @{"Username" = $username}
+                    $output += @{
+                        "Message" = $message;
+                        "Application" = $application;
+                        "Username" = $username
+                    }
                 }
                 Else{
                     # If the message is blank: EMET is not installed locally.
