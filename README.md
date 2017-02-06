@@ -55,3 +55,7 @@ or:
 
 `.\DeepBlue.ps1 -file .\evtx\new-user-security.evtx`
 
+or:
+
+`\DeepBlue.ps1 -file .\evtx\psattack-security.evtx -format csv -path ./`
+
