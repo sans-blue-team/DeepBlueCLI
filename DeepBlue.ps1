@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 0.1 Beta
+# DeepBlueCLI 0.3 Beta
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
@@ -48,10 +48,10 @@ function Main {
     $maxfailedlogons=100 # Alert after this many failed logons
     # Get the events:
     try{
-        $events = iex "Get-WinEvent -FilterHashtable $filter -ErrorAction Stop"
+        $events = iex "Get-WinEvent $filter -ErrorAction Stop"
     }
     catch {
-        Write-Host "Get-WinEvent -FilterHashtable $filter -ErrorAction Stop"
+        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
     	Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
         Write-Host "Exiting...`n"
         exit
@@ -177,11 +177,70 @@ function Main {
                     $output += (Check-Command $pscommand $minlength $regexes $whitelist 0)
                 }
             }
-            # Ignoring PowerShell event 4014 for now, DeepBlueCLI currently detects its own strings, and hilarity ensures
-            #ElseIf ($event.id -eq 4104){
-            #  $pscommand=$eventXML.Event.EventData.Data[2]."#text"
-            #  $output += (Check-Command $pscommand 9999 $regexes $whitelist 0)
-            #}
+            ElseIf ($event.id -eq 4104){
+                # This section requires PowerShell command logging, which is not the default with 
+                # event 4104 (logs the script block but not the command that launched it).
+                # 
+                # Add the following to \Windows\System32\WindowsPowerShell\v1.0\profile.ps1
+                # $LogCommandHealthEvent = $true
+                # $LogCommandLifecycleEvent = $true
+                #
+                # See the following for more information:
+                #
+                # https://logrhythm.com/blog/powershell-command-line-logging/
+                # http://hackerhurricane.blogspot.com/2014/11/i-powershell-logging-what-everyone.html
+                #
+                # Thank you: @heinzarelli and @HackerHurricane
+                # 
+                # The command's path is $eventxml.Event.EventData.Data[4]
+                # Blank path means it was run as a commandline. CLI parsing is *much* simpler than
+                # script parsing.
+                # This ignores scripts and grabs PowerShell CLIs
+                if (-not ($eventxml.Event.EventData.Data[4]."#text")){
+                      $pscommand=$eventXML.Event.EventData.Data[2]."#text"
+                      $output += (Check-Command $pscommand 500 $regexes $whitelist 0)
+                }
+            }
+        }
+        ElseIf ($logname -eq "Sysmon"){
+        #@{logname="Microsoft-Windows-Sysmon/Operational";id=1} | %{$_.Properties[11].Value}| sort -Unique
+        #get-winevent @{logname="Microsoft-Windows-Sysmon/Operational";id=1} | % {$_.Properties[11].Value}| Sort-Object -unique
+        #Get-WinEvent @{logname="Microsoft-Windows-Sysmon/Operational";id=7}|fl
+            # Check command lines
+            if ($event.id -eq 1){
+                #get-winevent @{logname="Microsoft-Windows-Sysmon/Operational";id=1} | % {$_.Properties[4].Value}
+                $commandline=$eventXML.Event.EventData.Data[4]."#text"
+                # Remove "Command Line: " from the $commandline
+                #$commandline= $commandline -Replace "^Command Line:",""
+                #$commandline
+                $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+            }
+            # Check for unsigned EXEs/DLLs:
+            ElseIf ($event.id -eq 7){
+                if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
+                    $image=$eventXML.Event.EventData.Data[3]."#text"
+                    $imageload=$eventXML.Event.EventData.Data[4]."#text"
+                    $hash=$eventXML.Event.EventData.Data[5]."#text"
+                    $pscommand=  "  - Image: " + $image + "`r`n"
+                    $pscommand+= "  - ImageLoaded: " + $imageload + "`r`n"      
+                    #$pscommand+= "  - Hash: " + $hash + "`r`n"
+                    # Multiple hashes may be logged, we want SHA1. Remove everything through "SHA1="
+                    $sha1= $hash -Replace "(?ms)^.*SHA1=",""
+                    # Split the string on commas, grab field 0
+                    $sha1=$sha1.Split(",")[0]
+                    $hashfile=".\hashes\$sha1"
+                    if (-not (Test-Path $hashfile)){  
+                        # Hash file doesn't exist, create it
+                        $csv=$image+","+$imageload
+                        $csv | Set-Content $hashfile
+                    }
+                    #$pscommand+= $eventXML.Event.EventData.Data[6]."#text" + "`r`n"
+                    #$pscommand+= $eventXML.Event.EventData.Data[7]."#text" + "`r`n"
+                    #$pscommand+= $eventXML.Event.EventData.Data[8]."#text" + "`r`n"
+                    $output+= "  Unsigned image:`r`n"
+                    $output+= $pscommand
+                 }
+             }
         }
         if ($output){
             $event.TimeCreated 
@@ -209,6 +268,12 @@ function Check-Options($file, $log)
         ElseIf ($log -eq "Application"){
             $logname="Application"
         }
+        ElseIf ($log -eq "Sysmon"){
+            $logname="Sysmon"
+        }
+            ElseIf ($log -eq "Powershell"){
+            $logname="Powershell"
+        }
         Else{
             write-host $log_error
             exit 1
@@ -234,7 +299,8 @@ function Check-Options($file, $log)
                 "System"      {$logname="System"}
                 "Application" {$logname="Application"}
                 "Microsoft-Windows-AppLocker*"   {$logname="Applocker"}
-                "Microsoft-Windows-PowerShell/Operational"   {$logname="PowerShell"}
+                "Microsoft-Windows-PowerShell/Operational"   {$logname="Powershell"}
+                "Microsoft-Windows-Sysmon/Operational"   {$logname="Sysmon"}
                 default       {"Logic error 3, should not reach here...";Exit 1}
             }
         }
@@ -248,20 +314,22 @@ function Check-Options($file, $log)
 
 function Create-Filter($file, $logname)
 {
-    # Return the Get-Winevent -FilterHashtable filter 
+    # Return the Get-Winevent filter 
     #
     $sys_events="7030,7036,7045"
     $sec_events="4688,4720,4728,4732,4625"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
-    $powershell_events="4103"
+    $powershell_events="4103,4104"
+    $sysmon_events="1,7"
     if ($file -ne ""){
         switch ($logname){
             "Security"    {$filter="@{path=""$file"";ID=$sec_events}"}
             "System"      {$filter="@{path=""$file"";ID=$sys_events}"}
             "Application" {$filter="@{path=""$file"";ID=$app_events}"}
             "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events}"}
-            "PowerShell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
+            "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
+            "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events}"}
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
@@ -271,7 +339,8 @@ function Create-Filter($file, $logname)
             "System"      {$filter="@{Logname=""System"";ID=$sys_events}"}
             "Application" {$filter="@{Logname=""Application"";ID=$app_events}"}
             "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker"";ID=$applocker_events}"}
-            "PowerShell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
+            "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
+            "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
             default       {"Logic error 2, should not reach here...";Exit 1}
         }
     }
@@ -317,6 +386,7 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
             $decoded = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($base64))
             $text += "  Decoded Base64:" + $decoded + "`n"
             $text += "   - Base64-encoded function`n"
+            $text += (Check-Obfu $decoded)
             $text += (Check-Regex $decoded $regexes 0)
             #foreach ($regex in $regexes){
             #    if ($regex.Type -eq 0) { # Image Path match
@@ -351,20 +421,60 @@ function Check-Regex($string,$regexes,$type){
 }
 
 function Check-Obfu($string){
-    # Check how many "+" characters are in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
+    # Check how many special characters are in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
     # There are many ways to do this, including regex. Need a way that doesn't kill the CPU. This works, but isn't super concise. There is probably a
     # better way.
-    #
-    # Plan to add a loop to go through more characters. 
+    # 
     $obfutext="" # Local variable for return output
     $maxchars=25
-    # Remove the "+" characters
-    $string2 = $string -replace "\+"
+    #$obfuchars = "\+", "\'", "\}", "\{"
+    #foreach ($char in $obfuchars){
+    #
+    # I tried to loop through the characters (as the two commented lines above show, but
+    # hit problems of variable interpolation. I am probably making a simple mistake.
+    # If you can get the above loop working, please email deepblue at backshore dot net. 
+    # I will repay in an adult beverage 
+    #
+    # In the meantime, this is ugly, but works
+    $string2 = $string -replace "`'"
     # Compare the length
     if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars + characters`n"
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars ' characters`n"
+    }
+    $string2 = $string -replace "`{"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars { characters`n"
+    }
+    $string2 = $string -replace "`}"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars } characters`n"
+    }
+    $string2 = $string -replace ","
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars , characters`n"
+    }
+    $string2 = $string -replace "!"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars ! characters`n"
+    }
+    $string2 = $string -replace "%"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars % characters`n"
+    }
+    $string2 = $string -replace "&"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars & characters`n"
+    }
+    $string2 = $string -replace ">"
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars > characters`n"
+    }
+    $string2 = $string -replace "`""
+    if (($string.length - $string2.length) -gt $maxchars){
+        $obfutext += "   - Possible command obfuscation: greater than $maxchars double quotes`n"
     }
     return $obfutext
+    #}
 }
 
 function Remove-Spaces($string){
