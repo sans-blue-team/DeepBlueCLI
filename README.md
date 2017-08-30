@@ -55,3 +55,31 @@ or:
 
 `.\DeepBlue.ps1 -file .\evtx\new-user-security.evtx`
 
+## Logging setup
+
+### Security event 4688 (Command line auditing):
+
+Enable Windows command-line auditing: https://support.microsoft.com/en-us/kb/3004375 
+
+### PowerShell auditing (PowerShell 5.0):
+
+DeepBlueCLI uses module logging (PowerShell event 4013) and script block logging (4104). It does not use transcription.
+
+See: https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html
+
+To get the PowerShell commandline (and not just script block), add the following to \Windows\System32\WindowsPowerShell\v1.0\profile.ps1
+```
+$LogCommandHealthEvent = $true
+$LogCommandLifecycleEvent = $true
+```
+See the following for more information:
+ - https://logrhythm.com/blog/powershell-command-line-logging/
+ - http://hackerhurricane.blogspot.com/2014/11/i-powershell-logging-what-everyone.html
+
+Thank you: @heinzarelli and @HackerHurricane
+
+### Sysmon
+
+Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+
+Log SHA1 hashes. Others are fine; DeepBlueCLI will use SHA1.
