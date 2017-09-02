@@ -55,6 +55,22 @@ or:
 
 `.\DeepBlue.ps1 -file .\evtx\new-user-security.evtx`
 
+## Windows Event Logs processed
+
+- Windows Security 
+- Windows System
+- Windows Application
+- Windows Powershell 
+- Sysmon (new)
+
+### Command Lines Logs processed
+
+See 'Logging setup' section below for how to configure these logs
+
+- Windows Security event ID 4688 
+- Windows Powershell event IDs 4103 and 4104
+- Sysmon event ID 1
+
 ## Logging setup
 
 ### Security event 4688 (Command line auditing):
@@ -67,7 +83,7 @@ DeepBlueCLI uses module logging (PowerShell event 4013) and script block logging
 
 See: https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html
 
-To get the PowerShell commandline (and not just script block), add the following to \Windows\System32\WindowsPowerShell\v1.0\profile.ps1
+To get the PowerShell commandline (and not just script block) on Windows 7 through Windows 8.1, add the following to \Windows\System32\WindowsPowerShell\v1.0\profile.ps1
 ```
 $LogCommandHealthEvent = $true
 $LogCommandLifecycleEvent = $true
