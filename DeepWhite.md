@@ -14,6 +14,10 @@ It also requires a VirusTotal API key:
 
  - https://www.virustotal.com/en/documentation/public-api/
 
+Then configure your VirusTotal API key:
+```
+set-VTAPIKey -APIKey <API Key>
+```
 The script assumes a personal API key, and waits 15 seconds between submissions.
 
 ## Generating a Whitelist
@@ -34,4 +38,7 @@ cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$" | cut -d, -f2- > win10-x
 ```
 
 Add this entry to the first line of the file (only sha256 and path are currently needed)
-```md5,sha1,sha256,path```
+```
+md5,sha1,sha256,path
+```
+
