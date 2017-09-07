@@ -27,7 +27,7 @@ Install hashdeep: https://github.com/jessek/hashdeep/releases
 Generate your own whitelist on Windows:
 
 ```
-hashdeep.exe -r / -c md5,sha1,sha56 > raw-hashes.csv
+C:\> hashdeep.exe -r / -c md5,sha1,sha56 > raw-hashes.csv
 ```
 Note that hashdeep, etc., has a dumb recursive design (from the manpage):
 
@@ -35,7 +35,7 @@ Note that hashdeep, etc., has a dumb recursive design (from the manpage):
 
 On Linux/Unix: take the raw CSV, remove the carriage returns, select DLLs, EXEs and SYS files, grab the 2nd field to the end, and create a new whitelist:
 ```shell
-echo "md5,sha1,sha256,path" > file-whitelist.csv
-cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$|\.sys$" | cut -d, -f2- >> file-whitelist.csv
+$ echo "md5,sha1,sha256,path" > file-whitelist.csv
+$ cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$|\.sys$" | cut -d, -f2- >> file-whitelist.csv
 ```
 
