@@ -16,9 +16,8 @@ Sample evtx files are in the .\evtx directory
 - [Usage](#usage)  
 - [Examples](#examples) 
 - [Logging setup](#logging-setup)
-- [VirusTotal and Whitelisting setup](#virustotal-and-whitelisting-setup)
+- See the [DeepWhite Readme](DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
 
-- See the [DeepWhite Readme](DeepWhite.md) for information on DeepWhite (detecting whitelisting using Sysmon event logs)
 ## Usage:
 
 
