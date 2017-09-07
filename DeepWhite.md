@@ -15,7 +15,7 @@ It also requires a VirusTotal API key:
  - https://www.virustotal.com/en/documentation/public-api/
 
 Then configure your VirusTotal API key:
-```
+```powershell
 set-VTAPIKey -APIKey <API Key>
 ```
 The script assumes a personal API key, and waits 15 seconds between submissions.
