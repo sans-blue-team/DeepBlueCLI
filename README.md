@@ -107,18 +107,7 @@ Thank you: @heinzarelli and @HackerHurricane
 
 Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
 
-Log SHA1 hashes. Others are fine; DeepBlueCLI will use SHA1.
+DeepBlue and DeepWhite currently use Sysmon events, 1, 6 and 7.
 
-## VirusTotal and Whitelisting setup
+Log SHA256 hashes. Others are fine; DeepBlueCLI will use SHA256.
 
-Setting up VirusTotal hash submissions and whitelisting:
-
-The hash checker requires Post-VirusTotal:
-
- - https://github.com/darkoperator/Posh-VirusTotal
-
-It also requires a VirusTotal API key: 
-
- - https://www.virustotal.com/en/documentation/public-api/
-
-The script assumes a personal API key, and waits 15 seconds between submissions.
