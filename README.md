@@ -15,7 +15,7 @@ Sample evtx files are in the .\evtx directory
 ## Table of Contents  
 - [Usage](#usage)  
 - [Examples](#examples) 
-- [Logging setup](#Logging-setup)
+- [Logging setup](#Logging)
 - [VirusTotal/Whitelisting setup](#VirusTotal/Whitelisting setup)
 
 ## Usage:
