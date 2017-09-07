@@ -35,6 +35,8 @@ Note that hashdeep, etc., has a dumb recursive design (from the manpage):
 
 On Linux/Unix: create a new CSV with the proper header (required by PowerShell's ConvertFrom-Csv), take the raw CSV, remove the carriage returns, select DLLs, EXEs and SYS files, grab the 2nd field to the end, and append to the new CSV:
 ```shell
+
+Todo: add PowerShell instructions to do this on Windows. Contributions welcome! 
 $ echo "md5,sha1,sha256,path" > file-whitelist.csv
 $ cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$|\.sys$" | cut -d, -f2- >> file-whitelist.csv
 ```
