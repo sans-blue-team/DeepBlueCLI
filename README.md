@@ -16,7 +16,7 @@ Sample evtx files are in the .\evtx directory
 - [Usage](#usage)  
 - [Examples](#examples) 
 - [Logging setup](#logging-setup)
-- [VirusTotal/Whitelisting setup](#virusTotal/whitelisting)
+- [VirusTotal and Whitelisting setup](#virustotal-and-whitelisting-setup)
 
 ## Usage:
 
@@ -108,7 +108,7 @@ Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/
 
 Log SHA1 hashes. Others are fine; DeepBlueCLI will use SHA1.
 
-## VirusTotal/Whitelisting 
+## VirusTotal and Whitelisting setup
 
 Setting up VirusTotal hash submissions and whitelisting:
 
