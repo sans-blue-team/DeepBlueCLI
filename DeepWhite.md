@@ -34,12 +34,8 @@ Note that hashdeep, etc., has a dumb recursive design (from the manpage):
 > Enables recursive mode. All subdirectories are traversed. Please note that recursive mode cannot be used to examine all files of a given file extension. For example, calling hashdeep -r *.txt will examine all files in directories that end in .txt. Move file to Unix/Linux, remove Windows carriage returns, grab EXEs and DLLs, make CSV.
 
 On Linux/Unix: take the raw CSV, remove the carriage returns, select DLLs, EXEs and SYS files, grab the 2nd field to the end, and create a new whitelist:
-```
-cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$|\.sys$" | cut -d, -f2- > file-whitelist.csv
-```
-
-Add this entry to the first line of the file (only sha256 and path are currently needed)
-```
-md5,sha1,sha256,path
+```shell
+echo "md5,sha1,sha256,path" > file-whitelist.csv
+cat raw-hashes.csv | tr -d '\r' | egrep "\.dll$|\.exe$|\.sys$" | cut -d, -f2- >> file-whitelist.csv
 ```
 
