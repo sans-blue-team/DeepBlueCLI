@@ -31,7 +31,7 @@ C:\> hashdeep.exe -r / -c md5,sha1,sha56 > raw-hashes.csv
 ```
 Note that hashdeep, etc., has a dumb recursive design (from the manpage):
 
-> Enables recursive mode. All subdirectories are traversed. Please note that recursive mode cannot be used to examine all files of a given file extension. For example, calling hashdeep -r *.txt will examine all files in directories that end in .txt. Move file to Unix/Linux, remove Windows carriage returns, grab EXEs and DLLs, make CSV.
+> Enables recursive mode. All subdirectories are traversed. Please note that recursive mode cannot be used to examine all files of a given file extension. For example, calling hashdeep -r *.txt will examine all files in directories that end in .txt. 
 
 On Linux/Unix: create a new CSV with the proper header (required by PowerShell's ConvertFrom-Csv), take the raw CSV, remove the carriage returns, select DLLs, EXEs and SYS files, grab the 2nd field to the end, and append to the new CSV:
 ```shell
