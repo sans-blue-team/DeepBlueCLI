@@ -40,15 +40,15 @@ Get-ChildItem $hashdirectory | Foreach-Object{
             ElseIf ($VTreport.positives -gt 0){
                 # File is flagged by Virustotal
                 $positives=$VTreport.positives
-                Write-Host " - Hash was detected by " + $positives + " Virustotal scanners`r`n"
+                Write-Host " - Hash was detected by $positives Virustotal scanners"
                 if ($positives -eq 1){
-                    Write-Host " - Don't Panic (yet)! There is only one positive, which may be a sign of a false positive.`r`n"
-                    Write-Host " - Check the VirusTotal report for more information.`r`n"
+                    Write-Host " - Don't Panic (yet)! There is only one positive, which may be a sign of a false positive."
+                    Write-Host " - Check the VirusTotal report for more information."
                 }
-                Write-Host " - See $hashdirectory\$SHA256.Virustotal for the full report"
+                Write-Host " - See $hashdirectory\$SHA256.Virustotal for the full report`r`n"
                 $VTreport | Set-Content "$hashdirectory\$SHA256.Virustotal"
                 # Rename original hash file, add the Virustotal positive count as a numbered extension
-                $SHA256.$positives
+                # $SHA256.$positives
                 Rename-Item -Path "$hashdirectory\$SHA256" -NewName "$SHA256.$positives"
              }
              # Wait 15 seconds between submissions, for public Virustotal API keys

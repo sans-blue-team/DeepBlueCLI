@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 0.3 Beta
+# DeepBlueCLI 0.4 Beta
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
@@ -178,9 +178,12 @@ function Main {
                 }
             }
             ElseIf ($event.id -eq 4104){
-                # This section requires PowerShell command logging, which is not the default with 
-                # event 4104 (logs the script block but not the command that launched it).
+                # This section requires PowerShell command logging for event 4104 , which seems to be default with 
+                # Windows 10, but may not not the default with older Windows versions (which may log the script 
+                # block but not the command that launched it). 
+                # Caveats included because more testing of various Windows versions is needed
                 # 
+                # If the command itself is not being logged:
                 # Add the following to \Windows\System32\WindowsPowerShell\v1.0\profile.ps1
                 # $LogCommandHealthEvent = $true
                 # $LogCommandLifecycleEvent = $true
@@ -193,8 +196,14 @@ function Main {
                 # Thank you: @heinzarelli and @HackerHurricane
                 # 
                 # The command's path is $eventxml.Event.EventData.Data[4]
+                #
                 # Blank path means it was run as a commandline. CLI parsing is *much* simpler than
-                # script parsing.
+                # script parsing. See Revoke-Obfuscation for parsing the script blocks:
+                # 
+                # https://github.com/danielbohannon/Revoke-Obfuscation
+                #
+                # Thanks to @danielhbohannon and @Lee_Holmes
+                #
                 # This ignores scripts and grabs PowerShell CLIs
                 if (-not ($eventxml.Event.EventData.Data[4]."#text")){
                       $pscommand=$eventXML.Event.EventData.Data[2]."#text"
@@ -220,23 +229,9 @@ function Main {
                 if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
                     $image=$eventXML.Event.EventData.Data[3]."#text"
                     $imageload=$eventXML.Event.EventData.Data[4]."#text"
-                    $hash=$eventXML.Event.EventData.Data[5]."#text"
+                    # $hash=$eventXML.Event.EventData.Data[5]."#text"
                     $pscommand=  "  - Image: " + $image + "`r`n"
                     $pscommand+= "  - ImageLoaded: " + $imageload + "`r`n"      
-                    #$pscommand+= "  - Hash: " + $hash + "`r`n"
-                    # Multiple hashes may be logged, we want SHA1. Remove everything through "SHA1="
-                    $sha1= $hash -Replace "(?ms)^.*SHA1=",""
-                    # Split the string on commas, grab field 0
-                    $sha1=$sha1.Split(",")[0]
-                    $hashfile=".\hashes\$sha1"
-                    if (-not (Test-Path $hashfile)){  
-                        # Hash file doesn't exist, create it
-                        $csv=$image+","+$imageload
-                        $csv | Set-Content $hashfile
-                    }
-                    #$pscommand+= $eventXML.Event.EventData.Data[6]."#text" + "`r`n"
-                    #$pscommand+= $eventXML.Event.EventData.Data[7]."#text" + "`r`n"
-                    #$pscommand+= $eventXML.Event.EventData.Data[8]."#text" + "`r`n"
                     $output+= "  Unsigned image:`r`n"
                     $output+= $pscommand
                  }
@@ -410,7 +405,7 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
 
 function Check-Regex($string,$regexes,$type){
     $regextext="" # Local variable for return output
-    foreach ($regex in $regexes){
+     
         if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
             if ($string -Match $regex.regex) {
                $regextext += "   - " + $regex.String + "`n"
@@ -421,60 +416,32 @@ function Check-Regex($string,$regexes,$type){
 }
 
 function Check-Obfu($string){
-    # Check how many special characters are in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
-    # There are many ways to do this, including regex. Need a way that doesn't kill the CPU. This works, but isn't super concise. There is probably a
-    # better way.
-    # 
-    $obfutext="" # Local variable for return output
-    $maxchars=25
-    #$obfuchars = "\+", "\'", "\}", "\{"
-    #foreach ($char in $obfuchars){
+    # Check for special characters in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
+    # There are many ways to do this, including regex. Need a way that doesn't kill the CPU. 
     #
-    # I tried to loop through the characters (as the two commented lines above show, but
-    # hit problems of variable interpolation. I am probably making a simple mistake.
-    # If you can get the above loop working, please email deepblue at backshore dot net. 
-    # I will repay in an adult beverage 
-    #
-    # In the meantime, this is ugly, but works
-    $string2 = $string -replace "`'"
-    # Compare the length
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars ' characters`n"
+    $obfutext=""       # Local variable for return output
+    $minpercent=.75    # minimum percentage of alphanumeric and common symbols
+    $maxbinary=.25 # Maximum percentage of zeros and ones
+    $lowercasestring=$string.ToLower()
+    $length=$lowercasestring.length
+    $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
+    $nobinarystring = $lowercasestring -replace "[01]" # To catch binary encoding
+    # Calculate the percent alphanumeric/common symbols
+    $percent=(($length-$noalphastring.length)/$length)    
+    if ($percent -lt $minpercent){
+        $percent = "{0:P0}" -f $percent      # Convert to a percent
+        $obfutext += "   - Possible command obfuscation: only $percent alphanumeric and common symbols`n"
     }
-    $string2 = $string -replace "`{"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars { characters`n"
-    }
-    $string2 = $string -replace "`}"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars } characters`n"
-    }
-    $string2 = $string -replace ","
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars , characters`n"
-    }
-    $string2 = $string -replace "!"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars ! characters`n"
-    }
-    $string2 = $string -replace "%"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars % characters`n"
-    }
-    $string2 = $string -replace "&"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars & characters`n"
-    }
-    $string2 = $string -replace ">"
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars > characters`n"
-    }
-    $string2 = $string -replace "`""
-    if (($string.length - $string2.length) -gt $maxchars){
-        $obfutext += "   - Possible command obfuscation: greater than $maxchars double quotes`n"
+    # Calculate the percent of binary characters
+    #$percent=(($length-$nobinarystring.length/$length)/$length)    
+    $percent=(($nobinarystring.length-$length/$length)/$length)
+    $binarypercent = 1-$percent
+    if ($binarypercent -gt $maxbinary){
+        #$binarypercent = 1-$percent
+        $binarypercent = "{0:P0}" -f $binarypercent      # Convert to a percent
+        $obfutext += "   - Possible command obfuscation: $binarypercent zeroes and ones (possible numeric or binary encoding)`n"
     }
     return $obfutext
-    #}
 }
 
 function Remove-Spaces($string){
