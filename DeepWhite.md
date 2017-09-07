@@ -1,4 +1,4 @@
-## DeepWhite
+# DeepWhite
 
 Detective whitelisting using Sysmon event logs
 
