@@ -16,7 +16,7 @@ Sample evtx files are in the .\evtx directory
 - [Usage](#usage)  
 - [Examples](#examples) 
 - [Logging setup](#Logging)
-- [VirusTotal/Whitelisting setup](#VirusTotal/Whitelisting setup)
+- [VirusTotal/Whitelisting setup](#VirusTotal/Whitelisting)
 
 ## Usage:
 
@@ -77,7 +77,9 @@ See 'Logging setup' section below for how to configure these logs
 - Windows Powershell event IDs 4103 and 4104
 - Sysmon event ID 1
 
-## Logging setup
+## Logging 
+
+Setting up logging:
 
 ### Security event 4688 (Command line auditing):
 
@@ -106,7 +108,9 @@ Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/
 
 Log SHA1 hashes. Others are fine; DeepBlueCLI will use SHA1.
 
-## VirusTotal/Whitelisting setup
+## VirusTotal/Whitelisting 
+
+Setting up VirusTotal hash submissions and whitelisting:
 
 The hash checker requires Post-VirusTotal:
 
