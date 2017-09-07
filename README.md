@@ -15,8 +15,8 @@ Sample evtx files are in the .\evtx directory
 ## Table of Contents  
 - [Usage](#usage)  
 - [Examples](#examples) 
-- [Logging setup](#Logging)
-- [VirusTotal/Whitelisting setup](#VirusTotal/Whitelisting)
+- [Logging setup](#logging-setup)
+- [VirusTotal/Whitelisting setup](#virusTotal/whitelisting)
 
 ## Usage:
 
@@ -77,7 +77,7 @@ See 'Logging setup' section below for how to configure these logs
 - Windows Powershell event IDs 4103 and 4104
 - Sysmon event ID 1
 
-## Logging 
+## Logging setup
 
 Setting up logging:
 
