@@ -28,7 +28,7 @@ Sysmon is required: https://docs.microsoft.com/en-us/sysinternals/downloads/sysm
 
 Must log the SHA256 hash, DeepWhite will ignore the others.
 
-This minimal Sysmon 6.0 config will log the proper events/hashes:
+This minimal Sysmon 6.0 config will log the proper events/hashes. Note that image (DLL) logging may create performance issues. This config ignores DLLs signed by Microsoft (which should lighten the load), but please test!
 
 ```xml
 <Sysmon schemaversion="3.3">
@@ -41,6 +41,7 @@ This minimal Sysmon 6.0 config will log the proper events/hashes:
       <Signature condition="contains">windows</Signature>
     </DriverLoad>
     <!-- Log all images (.dll) except if the signature contains Microsoft or Windows -->
+    <!-- Note: this may create a performance issue, please test -->
     <ImageLoad onmatch="exclude">
       <Signature condition="contains">microsoft</Signature>
       <Signature condition="contains">windows</Signature>
@@ -56,7 +57,7 @@ These are the events used by DeepBlueCLI and DeepWhite.
 
 You can go *much* further than this with Sysmon. The Sysinternals Sysmon page has a good basic configuration: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
 
-Also see @swiftonsecurity's awesome sysmon config here: https://github.com/SwiftOnSecurity/sysmon-config
+Also see @swiftonsecurity's awesome Sysmon config here: https://github.com/SwiftOnSecurity/sysmon-config
 
 ## Generating a Whitelist
 
