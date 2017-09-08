@@ -79,8 +79,6 @@ See 'Logging setup' section below for how to configure these logs
 
 ## Logging setup
 
-Setting up logging:
-
 ### Security event 4688 (Command line auditing):
 
 Enable Windows command-line auditing: https://support.microsoft.com/en-us/kb/3004375 
