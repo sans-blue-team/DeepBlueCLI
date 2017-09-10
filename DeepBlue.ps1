@@ -404,12 +404,10 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
 }    
 
 function Check-Regex($string,$regexes,$type){
-    $regextext="" # Local variable for return output
-     
-        if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
-            if ($string -Match $regex.regex) {
-               $regextext += "   - " + $regex.String + "`n"
-            }
+    $regextext="" # Local variable for return output 
+    if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
+        if ($string -Match $regex.regex) {
+           $regextext += "   - " + $regex.String + "`n"
         }
     }
     return $regextext
@@ -427,19 +425,21 @@ function Check-Obfu($string){
     $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
     $nobinarystring = $lowercasestring -replace "[01]" # To catch binary encoding
     # Calculate the percent alphanumeric/common symbols
-    $percent=(($length-$noalphastring.length)/$length)    
-    if ($percent -lt $minpercent){
-        $percent = "{0:P0}" -f $percent      # Convert to a percent
-        $obfutext += "   - Possible command obfuscation: only $percent alphanumeric and common symbols`n"
-    }
-    # Calculate the percent of binary characters
-    #$percent=(($length-$nobinarystring.length/$length)/$length)    
-    $percent=(($nobinarystring.length-$length/$length)/$length)
-    $binarypercent = 1-$percent
-    if ($binarypercent -gt $maxbinary){
-        #$binarypercent = 1-$percent
-        $binarypercent = "{0:P0}" -f $binarypercent      # Convert to a percent
-        $obfutext += "   - Possible command obfuscation: $binarypercent zeroes and ones (possible numeric or binary encoding)`n"
+    if ($length -gt 0){
+        $percent=(($length-$noalphastring.length)/$length)    
+        if ($percent -lt $minpercent){
+            $percent = "{0:P0}" -f $percent      # Convert to a percent
+            $obfutext += "   - Possible command obfuscation: only $percent alphanumeric and common symbols`n"
+        }
+        # Calculate the percent of binary characters
+        #$percent=(($length-$nobinarystring.length/$length)/$length)   
+        $percent=(($nobinarystring.length-$length/$length)/$length)
+        $binarypercent = 1-$percent
+        if ($binarypercent -gt $maxbinary){
+            #$binarypercent = 1-$percent
+            $binarypercent = "{0:P0}" -f $binarypercent      # Convert to a percent
+            $obfutext += "   - Possible command obfuscation: $binarypercent zeroes and ones (possible numeric or binary encoding)`n"
+        }
     }
     return $obfutext
 }
