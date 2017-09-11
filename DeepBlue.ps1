@@ -39,6 +39,7 @@ function Main {
     $minlength=1000 # Minimum length of command line to alert
     # Load cmd match regexes from csv file, ignore comments
     $regexes = Get-Content ".\regexes.txt" | Select-String '^[^#]' | ConvertFrom-Csv
+    #$regexes
     # Load cmd whitelist regexes from csv file, ignore comments
     $whitelist = Get-Content ".\whitelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
     $logname=Check-Options $file $log
@@ -63,7 +64,9 @@ function Main {
             if ($event.id -eq 4688){
                 # A new process has been created. (Command Line Logging)
                 $commandline=$eventXML.Event.EventData.Data[8]."#text"
-                $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                if ($commandline){
+                  $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                }
             }
             ElseIf ($event.id -eq 4720){ 
                 # A user account was created.
@@ -99,6 +102,7 @@ function Main {
             if ($event.id -eq 7045){
                 # A service was installed in the system.
                 $servicename=$eventXML.Event.EventData.Data[0]."#text"
+                #$servicename
                 # Check for suspicious service name
                 $text = (Check-Regex $servicename $regexes 1)
                 if ($text){
@@ -107,7 +111,9 @@ function Main {
                 }
                 # Check for suspicious cmd
                 $commandline=$eventXML.Event.EventData.Data[1]."#text"
-                $output += (Check-Command $commandline $minlength $regexes $whitelist 1)
+                if ($commandline){
+                    $output += (Check-Command $commandline $minlength $regexes $whitelist 1)
+                }
             }
             ElseIf ($event.id -eq 7030){
                 # The ... service is marked as an interactive service.  However, the system is configured 
@@ -174,7 +180,9 @@ function Main {
                     $pscommand = $pscommand -Replace "(?ms)^.*Host.Application = ",""
                     # Remove every line after the "Host Application = " line.
                     $pscommand = $pscommand -Replace "(?ms)`n.*$",""
-                    $output += (Check-Command $pscommand $minlength $regexes $whitelist 0)
+                    if ($pscommand){
+                      $output += (Check-Command $pscommand $minlength $regexes $whitelist 0)
+                    }
                 }
             }
             ElseIf ($event.id -eq 4104){
@@ -207,22 +215,19 @@ function Main {
                 # This ignores scripts and grabs PowerShell CLIs
                 if (-not ($eventxml.Event.EventData.Data[4]."#text")){
                       $pscommand=$eventXML.Event.EventData.Data[2]."#text"
-                      $output += (Check-Command $pscommand 500 $regexes $whitelist 0)
+                      if ($pscommand){
+                          $output += (Check-Command $pscommand 500 $regexes $whitelist 0)
+                      }
                 }
             }
         }
         ElseIf ($logname -eq "Sysmon"){
-        #@{logname="Microsoft-Windows-Sysmon/Operational";id=1} | %{$_.Properties[11].Value}| sort -Unique
-        #get-winevent @{logname="Microsoft-Windows-Sysmon/Operational";id=1} | % {$_.Properties[11].Value}| Sort-Object -unique
-        #Get-WinEvent @{logname="Microsoft-Windows-Sysmon/Operational";id=7}|fl
             # Check command lines
             if ($event.id -eq 1){
-                #get-winevent @{logname="Microsoft-Windows-Sysmon/Operational";id=1} | % {$_.Properties[4].Value}
                 $commandline=$eventXML.Event.EventData.Data[4]."#text"
-                # Remove "Command Line: " from the $commandline
-                #$commandline= $commandline -Replace "^Command Line:",""
-                #$commandline
-                $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                if ($commandline){
+                    $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                }
             }
             # Check for unsigned EXEs/DLLs:
             ElseIf ($event.id -eq 7){
@@ -404,10 +409,12 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
 }    
 
 function Check-Regex($string,$regexes,$type){
-    $regextext="" # Local variable for return output 
-    if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
-        if ($string -Match $regex.regex) {
-           $regextext += "   - " + $regex.String + "`n"
+    $regextext="" # Local variable for return output
+    foreach ($regex in $regexes){
+        if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
+            if ($string -Match $regex.regex) {
+               $regextext += "   - " + $regex.String + "`n"
+            }
         }
     }
     return $regextext
@@ -418,8 +425,8 @@ function Check-Obfu($string){
     # There are many ways to do this, including regex. Need a way that doesn't kill the CPU. 
     #
     $obfutext=""       # Local variable for return output
-    $minpercent=.75    # minimum percentage of alphanumeric and common symbols
-    $maxbinary=.25 # Maximum percentage of zeros and ones
+    $minpercent=.65    # minimum percentage of alphanumeric and common symbols
+    $maxbinary=.50 # Maximum percentage of zeros and ones
     $lowercasestring=$string.ToLower()
     $length=$lowercasestring.length
     $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
