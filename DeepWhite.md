@@ -66,3 +66,4 @@ Generate a custom whitelist on Windows (note: this is optional):
 ```
 PS C:\> Get-ChildItem c:\windows\system32 -Include '*.exe','*.dll','*.sys','*.com' -Recurse | Get-FileHash| Export-Csv -Path whitelist.csv
 ```
+Note: this will generate (harmless) 'PermissionDenied' warnings for locked files, etc. They may be ignored.
