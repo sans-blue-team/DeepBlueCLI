@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 0.4 Beta
+# DeepBlueCLI 1.9 pre-DerbyCon
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
@@ -35,18 +35,27 @@ https://github.com/sans-blue-team/DeepBlueCLI
 param ([string]$file=$env:file,[string]$log=$env:log)           
 
 function Main {
+    # Set up the global variables
     $text="" # Temporary scratch pad variable to hold output text
     $minlength=1000 # Minimum length of command line to alert
     # Load cmd match regexes from csv file, ignore comments
     $regexes = Get-Content ".\regexes.txt" | Select-String '^[^#]' | ConvertFrom-Csv
-    #$regexes
     # Load cmd whitelist regexes from csv file, ignore comments
     $whitelist = Get-Content ".\whitelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
     $logname=Check-Options $file $log
-    "Processing the " + $logname + " log..."
+    #"Processing the " + $logname + " log..."
     $filter=Create-Filter $file $logname
-    $failedlogons=0 # Count of failed logons (Security event 4625)
-    $maxfailedlogons=100 # Alert after this many failed logons
+    $maxfailedlogons=25 # Alert after this many failed logons
+    $failedlogins=@{}   # HashTable of failed logins per user
+    # Obfuscation variables:
+    $minpercent=.65  # minimum percentage of alphanumeric and common symbols
+    $maxbinary=.50   # Maximum percentage of zeros and ones to detect binary encoding
+    #
+    # Sysmon variables:
+    # Check for unsigned EXEs/DLLs. This can be very chatty, so it's disabled. 
+    # Set $checkunsigned to 1 to enable:
+    $checkunsigned = 0
+    #
     # Get the events:
     try{
         $events = iex "Get-WinEvent $filter -ErrorAction Stop"
@@ -58,22 +67,35 @@ function Main {
         exit
     }
     ForEach ($event in $events) {
-        $output="" # Final output text string
+        # Custom reporting object:
+        $obj = [PSCustomObject]@{
+            Date    = $event.TimeCreated
+            Log     = $logname
+            EventID = $event.id
+            Message = ""
+            Command = ""
+            Decoded = ""
+            Results = ""
+        }        
         $eventXML = [xml]$event.ToXml()
+        $servicecmd=0 # CLIs via service creation get extra checks, this defaults to 0 (no extra checks)
         if ($logname -eq "Security"){
             if ($event.id -eq 4688){
                 # A new process has been created. (Command Line Logging)
-                $commandline=$eventXML.Event.EventData.Data[8]."#text"
+                $commandline=$eventXML.Event.EventData.Data[8]."#text" # Process Command Line
+                $creator=$eventXML.Event.EventData.Data[13]."#text"    # Creator Process Name
                 if ($commandline){
-                  $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                    Check-Command
                 }
             }
             ElseIf ($event.id -eq 4720){ 
                 # A user account was created.
                 $username=$eventXML.Event.EventData.Data[0]."#text"
                 $securityid=$eventXML.Event.EventData.Data[2]."#text"
-                $output += "  New user created: $username`n"
-                $output += "    - User SID: $securityid`n"
+                $obj.Message = "New User Created" 
+                $obj.Results = "Username: $username`n"
+                $obj.Results += "User SID: $securityid`n"
+                Write-Output $obj
             }
             ElseIf(($event.id -eq 4728) -or ($event.id -eq 4732)){
                 # A member was added to a security-enabled (global|local) group.
@@ -83,11 +105,12 @@ function Main {
                     $username=$eventXML.Event.EventData.Data[0]."#text"
                     $securityid=$eventXML.Event.EventData.Data[1]."#text"
                     switch ($event.id){
-                        4728 {$output += "  User added to global $groupname group`n"}
-                        4732 {$output += "  User added to local $groupname group`n"}
+                        4728 {$obj.Message = "User added to global $groupname group"}
+                        4732 {$obj.Message = "User added to local $groupname group"}
                     }
-                    $output += "    - Username: $username`n"
-                    $output += "    - User SID: $securityid`n"
+                    $obj.Results = "Username: $username`n"
+                    $obj.Results += "User SID: $securityid`n"
+                    Write-Output $obj
                 }
             }
             ElseIf($event.id -eq 4625){
@@ -95,48 +118,63 @@ function Main {
                 # Requires auditing logon failures
                 # https://technet.microsoft.com/en-us/library/cc976395.aspx
                 $username=$eventXML.Event.EventData.Data[5]."#text"
-                $failedlogons += 1
+                if($failedlogins.ContainsKey($username)){
+                    $count=$failedlogins.Get_Item($username)
+                    $failedlogins.Set_Item($username,$count+1)
+                }
+                Else{
+                    $failedlogins.Set_Item($username,1)
+                }
             }
         }
         ElseIf ($logname -eq "System"){
             if ($event.id -eq 7045){
                 # A service was installed in the system.
                 $servicename=$eventXML.Event.EventData.Data[0]."#text"
-                #$servicename
+                $commandline=$eventXML.Event.EventData.Data[1]."#text"
                 # Check for suspicious service name
-                $text = (Check-Regex $servicename $regexes 1)
+                $text = (Check-Regex $servicename 1)
                 if ($text){
-                    $output += "  Service created, service name: $servicename`n"
-                    $output += $text
+                    $obj.Message = "New Service Created"
+                    $obj.Command = $commandline
+                    $obj.Results = "Service name: $servicename`n"
+                    $obj.Results +=$text 
+                    Write-Output $obj
                 }
                 # Check for suspicious cmd
-                $commandline=$eventXML.Event.EventData.Data[1]."#text"
                 if ($commandline){
-                    $output += (Check-Command $commandline $minlength $regexes $whitelist 1)
+                    $servicecmd=1 # CLIs via service creation get extra checks 
+                    Check-Command
                 }
             }
             ElseIf ($event.id -eq 7030){
                 # The ... service is marked as an interactive service.  However, the system is configured 
                 # to not allow interactive services.  This service may not function properly.
                 $servicename=$eventXML.Event.EventData.Data."#text"
-                $output += "  Interactive service warning, service name: $servicename`n"
+                $obj.Message = "Interactive service warning"
+                $obj.Results = "Service name: $servicename`n"
+                $obj.Results += "Malware (and some third party software) trigger this warning"
                 # Check for suspicious service name
-                $output += (Check-Regex $servicename $regexes 1)
+                $servicecmd=1 # CLIs via service creation get extra check
+                $obj.Results += (Check-Regex $servicename 1)
+                Write-Output $obj
             }
             ElseIf ($event.id -eq 7036){
                 # The ... service entered the stopped|running state.
                 $servicename=$eventXML.Event.EventData.Data[0]."#text"
-                $text = (Check-Regex $servicename $regexes 1)
+                $text = (Check-Regex $servicename 1)
                 if ($text){
-                    $output += "  " + $event.Message + "`n"
-                    $output += $text
+                    $obj.Message = "Suspicious Service Name"
+                    $obj.Results = "Service name: $servicename`n"
+                    $obj.Results += $text
+                    Write-Output $obj
                 }
             }
         } 
         ElseIf ($logname -eq "Application"){
             if (($event.id -eq 2) -and ($event.Providername -eq "EMET")){
                 # EMET Block
-                $output += "  EMET Block`n"
+                $obj.Message="EMET Block"
                 if ($event.Message){ 
                     # EMET Message is a blob of text that looks like this:
                     #########################################################
@@ -151,37 +189,51 @@ function Main {
                     #   Module        : mshtml.dll
                     #  Address       : 0x6FBA7512, pull out relevant parts
                     $array = $event.message -split '\n' # Split each line of the message into an array
-                    $message = $array[0]
+                    $text = $array[0]
                     $application = Remove-Spaces($array[3])
+                    $command= $application -Replace "^Application: ",""
                     $username = Remove-Spaces($array[4])
-                    $output += "  - Message: $message`n"
-                    $output += "  - $application`n"
-                    $output += "  - $username`n" 
+                    $obj.Message="EMET Block"
+                    $obj.Command = "$command"
+                    $obj.Results = "$text`n"
+                    $obj.Results += "$username`n" 
                 }
                 Else{
                     # If the message is blank: EMET is not installed locally.
                     # This occurs when parsing remote event logs sent from systems with EMET installed
-                    $output += "  Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
+                    $obj.Message="Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
                 }
+                Write-Output $obj
             }
         }  
         ElseIf ($logname -eq "Applocker"){
-            if ($event.id -eq 8004){ 
+            if ($event.id -eq 8003){
+                # ...was allowed to run but would have been prevented from running if the AppLocker policy were enforced.
+                $obj.Message="Applocker Warning"
+                $command = $event.message -Replace " was .*$",""
+                $obj.Command=$command
+                $obj.Results = $event.message
+                Write-Output $obj
+            }
+            ElseIf ($event.id -eq 8004){ 
+                $obj.Message="Applocker Block"
                 # ...was prevented from running.
-                $output += "  Applocker block: " + $event.message
+                $command = $event.message -Replace " was .*$",""
+                $obj.Command=$command
+                $obj.Results = $event.message
+                Write-Output $obj
             }
         } 
         ElseIf ($logname -eq "PowerShell"){
-            #$event.pd
             if ($event.id -eq 4103){
-                $pscommand= $eventXML.Event.EventData.Data[2]."#text"
-                if ($pscommand -Match "Host Application"){ 
+                $commandline= $eventXML.Event.EventData.Data[2]."#text"
+                if ($commandline -Match "Host Application"){ 
                     # Multiline replace, remove everything before "Host Application = "
-                    $pscommand = $pscommand -Replace "(?ms)^.*Host.Application = ",""
+                    $commandline = $commandline -Replace "(?ms)^.*Host.Application = ",""
                     # Remove every line after the "Host Application = " line.
-                    $pscommand = $pscommand -Replace "(?ms)`n.*$",""
-                    if ($pscommand){
-                      $output += (Check-Command $pscommand $minlength $regexes $whitelist 0)
+                    $commandline = $commandline -Replace "(?ms)`n.*$",""
+                    if ($commandline){
+                      Check-Command
                     }
                 }
             }
@@ -214,9 +266,9 @@ function Main {
                 #
                 # This ignores scripts and grabs PowerShell CLIs
                 if (-not ($eventxml.Event.EventData.Data[4]."#text")){
-                      $pscommand=$eventXML.Event.EventData.Data[2]."#text"
-                      if ($pscommand){
-                          $output += (Check-Command $pscommand 500 $regexes $whitelist 0)
+                      $commandline=$eventXML.Event.EventData.Data[2]."#text"
+                      if ($commandline){
+                          Check-Command
                       }
                 }
             }
@@ -224,32 +276,39 @@ function Main {
         ElseIf ($logname -eq "Sysmon"){
             # Check command lines
             if ($event.id -eq 1){
+                $creator=$eventXML.Event.EventData.Data[14]."#text"
                 $commandline=$eventXML.Event.EventData.Data[4]."#text"
                 if ($commandline){
-                    $output += (Check-Command $commandline $minlength $regexes $whitelist 0)
+                    Check-Command
                 }
             }
-            # Check for unsigned EXEs/DLLs:
             ElseIf ($event.id -eq 7){
-                if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
-                    $image=$eventXML.Event.EventData.Data[3]."#text"
-                    $imageload=$eventXML.Event.EventData.Data[4]."#text"
-                    # $hash=$eventXML.Event.EventData.Data[5]."#text"
-                    $pscommand=  "  - Image: " + $image + "`r`n"
-                    $pscommand+= "  - ImageLoaded: " + $imageload + "`r`n"      
-                    $output+= "  Unsigned image:`r`n"
-                    $output+= $pscommand
+                # Check for unsigned EXEs/DLLs:
+                # This can be very chatty, so it's disabled. 
+                # Set $checkunsigned to 1 (global variable section) to enable:
+                if ($checkunsigned){
+                    if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
+                        $obj.Message="Unsigned Image (DLL)"
+                        $image=$eventXML.Event.EventData.Data[3]."#text"
+                        $imageload=$eventXML.Event.EventData.Data[4]."#text"
+                        # $hash=$eventXML.Event.EventData.Data[5]."#text"
+                        $obj.Command=$imageload
+                        $obj.Results=  "Loaded by: $image"
+                        Write-Output $obj
+                     }
                  }
              }
         }
-        if ($output){
-            $event.TimeCreated 
-            $output
-            ""
-        }
     }
-    if ($failedlogons -gt $maxfailedlogons){
-         "High number of failed logons in the security event log: " + $failedlogons 
+    # Iterate through failed logins hashtable (key is $username)
+    foreach ($username in $failedlogins.Keys) {
+        $count=$failedlogins.Get_Item($username)
+        if ($count -gt $maxfailedlogons){
+            $obj.Message="High number of failed logons"
+            $obj.Results= "Username: $username`n"
+            $obj.Results += "$count failed logons"
+            Write-Output $obj
+        }
     }
 } 
 
@@ -298,7 +357,7 @@ function Check-Options($file, $log)
                 "Security"    {$logname="Security"}
                 "System"      {$logname="System"}
                 "Application" {$logname="Application"}
-                "Microsoft-Windows-AppLocker*"   {$logname="Applocker"}
+                "Microsoft-Windows-AppLocker/EXE and DLL"   {$logname="Applocker"}
                 "Microsoft-Windows-PowerShell/Operational"   {$logname="Powershell"}
                 "Microsoft-Windows-Sysmon/Operational"   {$logname="Sysmon"}
                 default       {"Logic error 3, should not reach here...";Exit 1}
@@ -338,7 +397,7 @@ function Create-Filter($file, $logname)
             "Security"    {$filter="@{Logname=""Security"";ID=$sec_events}"}
             "System"      {$filter="@{Logname=""System"";ID=$sys_events}"}
             "Application" {$filter="@{Logname=""Application"";ID=$app_events}"}
-            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker"";ID=$applocker_events}"}
+            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events}"}
             "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
             "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
             default       {"Logic error 2, should not reach here...";Exit 1}
@@ -348,7 +407,7 @@ function Create-Filter($file, $logname)
 }
 
 
-function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
+function Check-Command(){
     $text=""
     $base64=""
     # Check to see if command is whitelisted
@@ -358,13 +417,12 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
             return
         }
     }
-    #$cmdlength=$commandline.length
-    #if ($cmdlength -gt $minlength){
     if ($commandline.length -gt $minlength){
-        $text += "   - Long Command Line: greater than $minlength bytes`n"
+        $text += "Long Command Line: greater than $minlength bytes`n"
     }
     $text += (Check-Obfu $commandline)
-    $text += (Check-Regex $commandline $regexes 0)
+    $text += (Check-Regex $commandline 0)
+    $text += (Check-Creator $commandline $creator)
     # Check for base64 encoded function, decode and print if found
     # This section is highly use case specific, other methods of base64 encoding and/or compressing may evade these checks
     if ($commandline -Match "\-enc.*[A-Za-z0-9/+=]{100}"){
@@ -379,41 +437,38 @@ function Check-Command($commandline,$minlength,$regexes,$whitelist,$servicecmd){
             # Metasploit-style compressed and base64-encoded function. Uncompress it.
             $decoded=New-Object IO.MemoryStream(,[Convert]::FromBase64String($base64))
             $uncompressed=(New-Object IO.StreamReader(((New-Object IO.Compression.GzipStream($decoded,[IO.Compression.CompressionMode]::Decompress))),[Text.Encoding]::ASCII)).ReadToEnd()
-            $text += "  Decoded/decompressed Base64:" + $uncompressed 
-            $text += "   - Base64-encoded and compressed function`n"
+            $obj.Decoded=$uncompressed
+            $text += "Base64-encoded and compressed function`n"
         }
         else{
             $decoded = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($base64))
-            $text += "  Decoded Base64:" + $decoded + "`n"
-            $text += "   - Base64-encoded function`n"
+            $obj.Decoded=$decoded
+            $text += "Base64-encoded function`n"
             $text += (Check-Obfu $decoded)
-            $text += (Check-Regex $decoded $regexes 0)
-            #foreach ($regex in $regexes){
-            #    if ($regex.Type -eq 0) { # Image Path match
-            #        if ($decoded -Match $regex.regex) {
-            #            $text += "   - " + $regex.String + "`n"
-            #        }
-            #    }
-            #}
+            $text += (Check-Regex $decoded 0)
         }
     }
     if ($text){
         if ($servicecmd){
-            return "  Service File Name: $commandline`n" + $text
+            $obj.Message = "Suspicious Service Command"
+            $obj.Results = "Service name: $servicename`n"
         }
         Else{
-            return "  Command Line: $commandline`n" + $text
+            $obj.Message = "Suspicious Command Line"
         }
+        $obj.Command = $commandline
+        $obj.Results += $text
+        Write-Output $obj
     }
-    return ""
+    return
 }    
 
-function Check-Regex($string,$regexes,$type){
+function Check-Regex($string,$type){
     $regextext="" # Local variable for return output
     foreach ($regex in $regexes){
         if ($regex.Type -eq $type) { # Type is 0 for Commands, 1 for services. Set in regexes.csv
             if ($string -Match $regex.regex) {
-               $regextext += "   - " + $regex.String + "`n"
+               $regextext += $regex.String + "`n"
             }
         }
     }
@@ -422,11 +477,8 @@ function Check-Regex($string,$regexes,$type){
 
 function Check-Obfu($string){
     # Check for special characters in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
-    # There are many ways to do this, including regex. Need a way that doesn't kill the CPU. 
     #
     $obfutext=""       # Local variable for return output
-    $minpercent=.65    # minimum percentage of alphanumeric and common symbols
-    $maxbinary=.50 # Maximum percentage of zeros and ones
     $lowercasestring=$string.ToLower()
     $length=$lowercasestring.length
     $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
@@ -434,21 +486,39 @@ function Check-Obfu($string){
     # Calculate the percent alphanumeric/common symbols
     if ($length -gt 0){
         $percent=(($length-$noalphastring.length)/$length)    
+        # Adjust minpercent for very short commands, to avoid triggering short warnings
+        if (($length/100) -lt $minpercent){ 
+            $minpercent=$minpercent-($minpercent)+($length/100) 
+        }
         if ($percent -lt $minpercent){
             $percent = "{0:P0}" -f $percent      # Convert to a percent
-            $obfutext += "   - Possible command obfuscation: only $percent alphanumeric and common symbols`n"
+            $obfutext += "Possible command obfuscation: only $percent alphanumeric and common symbols`n"
         }
-        # Calculate the percent of binary characters
-        #$percent=(($length-$nobinarystring.length/$length)/$length)   
+        # Calculate the percent of binary characters  
         $percent=(($nobinarystring.length-$length/$length)/$length)
         $binarypercent = 1-$percent
         if ($binarypercent -gt $maxbinary){
             #$binarypercent = 1-$percent
             $binarypercent = "{0:P0}" -f $binarypercent      # Convert to a percent
-            $obfutext += "   - Possible command obfuscation: $binarypercent zeroes and ones (possible numeric or binary encoding)`n"
+            $obfutext += "Possible command obfuscation: $binarypercent zeroes and ones (possible numeric or binary encoding)`n"
         }
     }
     return $obfutext
+}
+
+function Check-Creator($command,$creator){
+    $creatortext=""  # Local variable for return output
+    if ($creator){
+        if ($command -Match "powershell"){
+            if ($creator -Match "PSEXESVC"){
+                $creatortext += "PowerShell launched via PsExec: $creator`n"
+            }
+            ElseIf($creator -Match "WmiPrvSE"){
+                $creatortext += "PowerShell launched via WMI: $creator`n"
+            }
+        }
+    }
+    return $creatortext
 }
 
 function Remove-Spaces($string){
