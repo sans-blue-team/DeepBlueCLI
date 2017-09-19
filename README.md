@@ -1,6 +1,6 @@
 # DeepBlueCLI
 
-DeepBlueCLI 0.3 Beta
+DeepBlueCLI 1.9-pre-DerbyCon
 
 Eric Conrad, Backshore Communications, LLC
 
