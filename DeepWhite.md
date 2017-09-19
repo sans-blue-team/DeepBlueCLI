@@ -64,5 +64,5 @@ Also see @swiftonsecurity's awesome Sysmon config here: https://github.com/Swift
 Generate a custom whitelist on Windows (note: this is optional):
 
 ```
-PS> Get-ChildItem c:\windows\system32 -Include '*.exe','*.dll','*.sys','*.com' -Recurse | Get-FileHash| Export-Csv -Path whitelist.csv
+PS C:\> Get-ChildItem c:\windows\system32 -Include '*.exe','*.dll','*.sys','*.com' -Recurse | Get-FileHash| Export-Csv -Path whitelist.csv
 ```
