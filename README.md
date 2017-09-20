@@ -83,6 +83,9 @@ See 'Logging setup' section below for how to configure these logs
 
 Enable Windows command-line auditing: https://support.microsoft.com/en-us/kb/3004375 
 
+### Security event 4625 (Failed logons):
+
+Requires auditing logon failures: https://technet.microsoft.com/en-us/library/cc976395.aspx
 ### PowerShell auditing (PowerShell 5.0):
 
 DeepBlueCLI uses module logging (PowerShell event 4013) and script block logging (4104). It does not use transcription.
