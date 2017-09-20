@@ -73,9 +73,9 @@ function Main {
             Log     = $logname
             EventID = $event.id
             Message = ""
+            Results = ""
             Command = ""
             Decoded = ""
-            Results = ""
         }        
         $eventXML = [xml]$event.ToXml()
         $servicecmd=0 # CLIs via service creation get extra checks, this defaults to 0 (no extra checks)
@@ -472,6 +472,9 @@ function Check-Regex($string,$type){
             }
         }
     }
+    #if ($regextext){ 
+    #   $regextext = $regextext.Substring(0,$regextext.Length-1) # Remove final newline.
+    #}
     return $regextext
 }
 
@@ -488,7 +491,7 @@ function Check-Obfu($string){
         $percent=(($length-$noalphastring.length)/$length)    
         # Adjust minpercent for very short commands, to avoid triggering short warnings
         if (($length/100) -lt $minpercent){ 
-            $minpercent=$minpercent-($minpercent)+($length/100) 
+            $minpercent=($length/100) 
         }
         if ($percent -lt $minpercent){
             $percent = "{0:P0}" -f $percent      # Convert to a percent
