@@ -2,6 +2,8 @@
 
 DeepBlueCLI, ported to Python. Designed for parsing evtx files on Unix/Linux.
 
+Current version: alpha. It supports command line parsing for Security event log 4688, PowerShell log 4014, and Sysmon log 1. Will be porting more functionality from DeepBlueCLI after DerbyCon 7.
+
 ## libevtx
 
 Requires libevtx:  https://github.com/libyal/libevtx
