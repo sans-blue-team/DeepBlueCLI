@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# DeepBlue.py Alpha 0.1 (pre-DerbyCon release)
+# DeepBlue.py Alpha 0.12 (post-DerbyCon release)
 # Eric Conrad
 # Twitter: @eric_conrad
 # http://ericconrad.com
@@ -26,25 +26,28 @@ def filter(str):
 def CheckRegex(regexes,command):
     string=""
     for regex in regexes:
-        if re.search(regex[1],command,re.IGNORECASE):
-            string+=" - "+regex[2]+"\n"
+        if (regex[0] == "0"):
+            if re.search(regex[1],command,re.IGNORECASE):
+                string+=" - "+regex[2]+"\n"
     return(string)
 
-def CheckObfu(cli,minpercent):
+def CheckObfu(cli,minpercent,minlength):
     string=""
-    noalphastring =re.sub("[A-Za-z0-9]","",cli)
+    noalphastring=re.sub("[A-Za-z0-9]","",cli)
     length1=float(len(cli))
-    length2=float(len(noalphastring))
-    if ((length1/100) < minpercent):
-        minpercent=length1/100        # Shorter strings get lower minpercent, based on the string length
-    percent =((length1-length2)/length1)
-    if (percent < minpercent):
-        percent=(round(percent,2))
-        string += " - Potential command obfuscation: "+str(percent)+"% alpha characters"
+    if (length1 > minlength):
+        length2=float(len(noalphastring))
+        if ((length1/150) < minpercent):
+            minpercent=length1/150        # Shorter strings get lower minpercent, based on the string length
+        percent =((length1-length2)/length1)
+        if (percent < minpercent):
+            percent=(round(percent,2))*100
+            string += " - Potential command obfuscation: "+str(int(percent))+"% alpha characters"
     return(string)
 
 def CheckCommand(time, log, eventid, cli):
     minpercent=.65
+    minlength=25 # Minimum CLI length to check for obfuscation
     string=""
     decoded=""
     noalphastring=""
@@ -54,7 +57,7 @@ def CheckCommand(time, log, eventid, cli):
         decoded=base64.b64decode(b64)
         decoded=str(filter(decoded))  # Convert base64 to ASCII
         string+=CheckRegex(regexes,decoded)
-    string += CheckObfu(cli,minpercent) 
+    string += CheckObfu(cli,minpercent,minlength) 
     if(string):
         print "Date: %s\nLog: %s\nEventID: %s" % (time,log,eventid)
         print "Results:\n%s\n" % (string.rstrip())
