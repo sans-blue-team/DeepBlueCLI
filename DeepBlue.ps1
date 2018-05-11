@@ -32,7 +32,13 @@ https://github.com/sans-blue-team/DeepBlueCLI
 # http://ericconrad.com
 #
 
-param ([string]$file=$env:file,[string]$log=$env:log)           
+param ([string]$file=$env:file,[string]$log=$env:log,[string]$computer=$env:computer) 
+
+#Checking the Computer var and converting it to an address
+If ($computer -ne ""){
+    $ips = [System.Net.Dns]::GetHostAddresses($computer) 
+    $ips = $ips | select -ExpandProperty IPAddressToString
+}          
 
 function Main {
     # Set up the global variables
@@ -58,7 +64,13 @@ function Main {
     #
     # Get the events:
     try{
-        $events = iex "Get-WinEvent $filter -ErrorAction Stop"
+        #Run Get-WinEvent with the -Computer switch only if the computername was passed
+        If ($computer -ne ""){
+        $events = iex "Get-WinEvent -ComputerName $ips $filter -ErrorAction Stop"
+        }
+        Else{
+        $events = iex "Get-WinEvent  $filter -ErrorAction Stop"
+        }
     }
     catch {
         Write-Host "Get-WinEvent $filter -ErrorAction Stop"
