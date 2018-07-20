@@ -276,8 +276,14 @@ function Main {
         ElseIf ($logname -eq "Sysmon"){
             # Check command lines
             if ($event.id -eq 1){
+                if ($eventXML.Event.EventData.Data.Count -le 16){
                 $creator=$eventXML.Event.EventData.Data[14]."#text"
                 $commandline=$eventXML.Event.EventData.Data[4]."#text"
+				}
+				Else {
+				$creator=$eventXML.Event.EventData.Data[19]."#text"
+				$commandline=$eventXML.Event.EventData.Data[9]."#text"
+				}
                 if ($commandline){
                     Check-Command
                 }
