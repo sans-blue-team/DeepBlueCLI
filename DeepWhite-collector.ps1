@@ -2,8 +2,17 @@
 $events = get-winevent @{logname="Microsoft-Windows-Sysmon/Operational";id=1,6,7} 
 ForEach ($event in $events) {
     if ($event.id -eq 1){ # Process creation
-        $path=$event.Properties[3].Value   # Full path of the file
+        
+		if ($event.Properties.Count -le 16){
+		$path=$event.Properties[3].Value   # Full path of the file
         $hash=$event.Properties[11].Value  # Hashes
+		write-host $hash
+		}
+		Else {
+		$path=$event.Properties[4].Value   # Full path of the file
+        $hash=$event.Properties[16].Value  # Hashes		
+		write-host $hash
+		}
     }
     Else{
         # Hash and path are part of the message field in Sysmon events 6 and 7. Need to parse the XML
