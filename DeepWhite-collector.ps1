@@ -5,13 +5,11 @@ ForEach ($event in $events) {
         
 		if ($event.Properties.Count -le 16){
 		$path=$event.Properties[3].Value   # Full path of the file
-        $hash=$event.Properties[11].Value  # Hashes
-		write-host $hash
+       		$hash=$event.Properties[11].Value  # Hashes
 		}
 		Else {
 		$path=$event.Properties[4].Value   # Full path of the file
-        $hash=$event.Properties[16].Value  # Hashes		
-		write-host $hash
+	        $hash=$event.Properties[16].Value  # Hashes		
 		}
     }
     Else{
