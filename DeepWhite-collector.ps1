@@ -16,12 +16,24 @@ ForEach ($event in $events) {
         # Hash and path are part of the message field in Sysmon events 6 and 7. Need to parse the XML
         $eventXML = [xml]$event.ToXml()
         If ($event.id -eq 6){ # Driver (.sys) load    
-            $path=$eventxml.Event.EventData.Data[1]."#text" # Full path of the file
+            if ($event.Properties.Count -le 6){
+	    $path=$eventXML.Event.EventData.Data[1]."#text" # Full path of the file
             $hash=$eventXML.Event.EventData.Data[2]."#text" # Hashes
+	}
+	Else{
+		$path=$eventXML.Event.EventData.Data[2]."#text" # Full path of the file
+		$hash=$eventXML.Event.EventData.Data[3]."#text" # Hashes
+		}
         }
         ElseIf ($event.id -eq 7){ # Image (.dll) load
-            $path=$eventxml.Event.EventData.Data[4]."#text" # Full path of the file
+            if ($event.Properties.Count -lt 14){
+            $path=$eventXML.Event.EventData.Data[4]."#text" # Full path of the file
             $hash=$eventXML.Event.EventData.Data[5]."#text" # Hashes   
+		}
+	Else{
+		$path=$eventXML.Event.EventData.Data[5]."#text" # Full path of the file
+            	$hash=$eventXML.Event.EventData.Data[10]."#text" # Hashes   
+		} 
         }
         Else{
             Out-Host "Logic error 1, should not reach here..."
