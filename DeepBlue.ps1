@@ -170,6 +170,23 @@ function Main {
                     Write-Output $obj
                 }
             }
+            ElseIf ($event.id -eq 7040){
+                # The start type of the Windows Event Log service was changed from auto start to disabled.
+                $servicename=$eventXML.Event.EventData.Data[0]."#text"
+                $action = $eventXML.Event.EventData.Data[1]."#text"
+                if ($servicename -ccontains "Windows Event Log") {
+                    $obj.Results = "Service name: $servicename`n"
+                    $obj.Results += $text
+                    if ($action -eq "disabled") {
+                        $obj.Message = "Event Log Service Stopped"
+                        $obj.Results += "Selective event log manipulation may follow this event."
+                    } elseIf ($action -eq "auto start") {
+                        $obj.Message = "Event Log Service Started"
+                        $obj.Results += "Selective event log manipulation may precede this event."
+                    }
+                    Write-Output $obj
+                }
+            }
         } 
         ElseIf ($logname -eq "Application"){
             if (($event.id -eq 2) -and ($event.Providername -eq "EMET")){
@@ -375,7 +392,7 @@ function Create-Filter($file, $logname)
 {
     # Return the Get-Winevent filter 
     #
-    $sys_events="7030,7036,7045"
+    $sys_events="7030,7036,7045,7040"
     $sec_events="4688,4720,4728,4732,4625"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
