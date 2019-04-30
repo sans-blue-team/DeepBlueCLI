@@ -16,11 +16,11 @@ Sample evtx files are in the .\evtx directory
 - [Usage](#usage)  
 - [Examples](#examples) 
 - [Logging setup](#logging-setup)
+- [Detected events](#detected-events)
 - See the [DeepBlue.py Readme](README-DeepBlue.py.md) for information on DeepBlue.py
 - See the [DeepWhite Readme](README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
 
 ## Usage:
-
 
 `.\DeepBlue.ps1 <event log name> <evtx filename>`
 
@@ -117,4 +117,29 @@ Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/
 DeepBlue and DeepWhite currently use Sysmon events, 1, 6 and 7.
 
 Log SHA256 hashes. Others are fine; DeepBlueCLI will use SHA256.
+
+## Detected events
+
+* Suspicious account behavior
+  * User creation
+  * User added to local/global/universal groups
+  * Password guessing (multiple login failures, one account)
+  * Password spraying (multiple login failures, multiple accounts)
+  * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
+* Command line/Sysmon/Powershell auditing
+  * Regex searches
+  * Obfuscated commands
+  * Powershell launched via WMIC or PsExec
+  * Compressed/Base64 encoded commands (with automatic decompression/decoding)
+  * Unsigned EXEs or DLLs
+* Service auditing
+  * Suspicious service creation
+  * Service creation errors
+  * Stopping/starting the Windows Event Log service (potential event log manipulation)
+* EMET & Applocker Blocks
+* Sensitive Privilege Use (Mimikatz)
+
+...and more
+
+
 
