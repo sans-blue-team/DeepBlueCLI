@@ -62,7 +62,10 @@ function Main {
     # Obfuscation variables:
     $minpercent=.65  # minimum percentage of alphanumeric and common symbols
     $maxbinary=.50   # Maximum percentage of zeros and ones to detect binary encoding
-    #
+    # Password spray variables:
+    $passspraytrack = @{}
+    $passsprayuniqusermax = 6
+    $passsprayloginmax = 6
     # Sysmon variables:
     # Check for unsigned EXEs/DLLs. This can be very chatty, so it's disabled. 
     # Set $checkunsigned to 1 to enable:
@@ -189,6 +192,47 @@ function Main {
                     $obj.Results += "Username: $username`n"
                     $obj.Results += "Domain Name: $domainname`n"
                     Write-Output $obj
+                }
+            }
+            ElseIf($event.id -eq 4648){
+                # A logon was attempted using explicit credentials.
+                $username=$eventXML.Event.EventData.Data[1]."#text"
+                $hostname=$eventXML.Event.EventData.Data[2]."#text"
+                $targetusername=$eventXML.Event.EventData.Data[5]."#text"
+                $sourceip=$eventXML.Event.EventData.Data[12]."#text"
+
+                # For each #4648 event, increment a counter in $passspraytrack. If that counter exceeds 
+                # $passsprayloginmax, then check for $passsprayuniqusermax also exceeding threshold and raise
+                # a notice.
+                if ($passspraytrack[$targetusername] -eq $null) {
+                    $passspraytrack[$targetusername] = 1
+                } else {
+                    $passspraytrack[$targetusername] += 1
+                }
+                if ($passspraytrack[$targetusername] -gt $passsprayloginmax) {
+                    # This user account has exceedd the threshoold for explicit logins. Identify the total number
+                    # of accounts that also have similar explicit login patterns.
+                    $passsprayuniquser=0
+                    foreach($key in $passspraytrack.keys) {
+                        if ($passspraytrack[$key] -gt $passsprayloginmax) { 
+                            $passsprayuniquser+=1
+                        }
+                    }
+                    if ($passsprayuniquser -gt $passsprayuniqusermax) {
+                        $usernames=""
+                        foreach($key in $passspraytrack.keys) {
+                            $usernames += $key
+                            $usernames += " "
+                        }
+                        $obj.Message = "Distributed Account Explicit Credential Use (Password Spray Attack)"
+                        $obj.Results = "The use of multiple user account access attempts with explicit credentials is "
+                        $obj.Results += "an indicator of a password spray attack.`n"
+                        $obj.Results += "Target Usernames: $usernames`n"
+                        $obj.Results += "Accessing Username: $username`n"
+                        $obj.Results += "Accessing Host Name: $hostname`n"
+                        Write-Output $obj
+                        $passspraytrack = @{} # Reset
+                    }
                 }
             }
         }
@@ -475,7 +519,7 @@ function Create-Filter($file, $logname)
     # Return the Get-Winevent filter 
     #
     $sys_events="7030,7036,7045,7040"
-    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673"
+    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673,4648"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
