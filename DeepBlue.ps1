@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 1.9 pre-DerbyCon
+# DeepBlueCLI 2.01
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
@@ -45,8 +45,17 @@ function Main {
     $logname=Check-Options $file $log
     #"Processing the " + $logname + " log..."
     $filter=Create-Filter $file $logname
+    # Passworg guessing/spraying variables:
     $maxfailedlogons=25 # Alert after this many failed logons
-    $failedlogins=@{}   # HashTable of failed logins per user
+    $failedlogons=@{}   # HashTable of failed logons per user
+    $totalfailedlogons=0 # Total number of failed logons (for all accounts)
+    $totalfailedaccounts=0 # Total number of accounts with a failed logon
+    # Admin logon variables:
+    $totaladminlogons=0  # Total number of logons with SeDebugPrivilege
+    $maxadminlogons=10   # Alert after this many admin logons
+    $adminlogons=@{}     # HashTable of admin logons
+    $multipleadminlogons=@{} #Hashtable to track multiple admin logons per account
+    $alert_all_admin=0   # Set to 1 to alert every admin logon (set to 0 disable this)
     # Obfuscation variables:
     $minpercent=.65  # minimum percentage of alphanumeric and common symbols
     $maxbinary=.50   # Maximum percentage of zeros and ones to detect binary encoding
@@ -88,6 +97,40 @@ function Main {
                     Check-Command
                 }
             }
+            ElseIf ($event.id -eq 4672){ 
+                # Special privileges assigned to new logon (possible admin access)
+                $username=$eventXML.Event.EventData.Data[1]."#text"
+                $domain=$eventXML.Event.EventData.Data[2]."#text"
+                $securityid=$eventXML.Event.EventData.Data[3]."#text"
+                $privileges=$eventXML.Event.EventData.Data[4]."#text"
+                if ($privileges -Match "SeDebugPrivilege") { #Admin account with SeDebugPrivilege
+                    if ($alert_all_admin){ # Alert for every admin logon
+                        $obj.Message = "Logon with SeDebugPrivilege (admin access)" 
+                        $obj.Results = "Username: $username`n"
+                        $obj.Results += "Domain: $domain`n"
+                        $obj.Results += "User SID: $securityid`n"
+                        $obj.Results += "Privileges: $privileges"
+                        Write-Output $obj
+                    }
+                    # Track User SIDs used during admin logons (can track one account logging into multiple systems)
+                    $totaladminlogons+=1
+                    if($adminlogons.ContainsKey($username)){ 
+                        $string=$adminlogons.$username
+                        if (-Not ($string -Match $securityid)){ # One username with multiple admin logon SIDs 
+                            $multipleadminlogons.Set_Item($username,1)
+                            $string+=" $securityid"
+                            $adminlogons.Set_Item($username,$string)
+                        }
+                    }
+                    Else{
+                        $adminlogons.add($username,$securityid) 
+
+                        #$adminlogons.$username=$securityid
+                    }
+                    #$adminlogons.Set_Item($username,$securitysid)
+                    #$adminlogons($username)+=($securitysid)
+                }
+            }
             ElseIf ($event.id -eq 4720){ 
                 # A user account was created.
                 $username=$eventXML.Event.EventData.Data[0]."#text"
@@ -97,8 +140,8 @@ function Main {
                 $obj.Results += "User SID: $securityid`n"
                 Write-Output $obj
             }
-            ElseIf(($event.id -eq 4728) -or ($event.id -eq 4732)){
-                # A member was added to a security-enabled (global|local) group.
+            ElseIf(($event.id -eq 4728) -or ($event.id -eq 4732) -or ($event.id -eq 4756)){
+                # A member was added to a security-enabled (global|local|universal) group.
                 $groupname=$eventXML.Event.EventData.Data[2]."#text"
                 # Check if group is Administrators, may later expand to all groups
                 if ($groupname -eq "Administrators"){    
@@ -107,6 +150,7 @@ function Main {
                     switch ($event.id){
                         4728 {$obj.Message = "User added to global $groupname group"}
                         4732 {$obj.Message = "User added to local $groupname group"}
+                        4756 {$obj.Message = "User added to universal $groupname group"}
                     }
                     $obj.Results = "Username: $username`n"
                     $obj.Results += "User SID: $securityid`n"
@@ -117,15 +161,18 @@ function Main {
                 # An account failed to log on.
                 # Requires auditing logon failures
                 # https://technet.microsoft.com/en-us/library/cc976395.aspx
+                $totalfailedlogons+=1
                 $username=$eventXML.Event.EventData.Data[5]."#text"
-                if($failedlogins.ContainsKey($username)){
-                    $count=$failedlogins.Get_Item($username)
-                    $failedlogins.Set_Item($username,$count+1)
+                if($failedlogons.ContainsKey($username)){
+                    $count=$failedlogons.Get_Item($username)
+                    $failedlogons.Set_Item($username,$count+1)
                 }
                 Else{
-                    $failedlogins.Set_Item($username,1)
+                    $failedlogons.Set_Item($username,1)
+                    $totalfailedaccounts+=1   
                 }
             }
+
         }
         ElseIf ($logname -eq "System"){
             if ($event.id -eq 7045){
@@ -317,15 +364,32 @@ function Main {
              }
         }
     }
-    # Iterate through failed logins hashtable (key is $username)
-    foreach ($username in $failedlogins.Keys) {
-        $count=$failedlogins.Get_Item($username)
-        if ($count -gt $maxfailedlogons){
-            $obj.Message="High number of failed logons"
+    # Iterate through admin logons hashtable (key is $username)
+    foreach ($username in $adminlogons.Keys) {
+        $securityid=$adminlogons.Get_Item($username)
+        if($multipleadminlogons.$username){
+            $obj.Message="Multiple admin logons for one account"
             $obj.Results= "Username: $username`n"
-            $obj.Results += "$count failed logons"
+            $obj.Results += "User SIDs: $securityid"
             Write-Output $obj
         }
+    }
+    # Iterate through failed logons hashtable (key is $username)
+    foreach ($username in $failedlogons.Keys) {
+        $count=$failedlogons.Get_Item($username)
+        if ($count -gt $maxfailedlogons){
+            $obj.Message="High number of logon failures for one account"
+            $obj.Results= "Username: $username`n"
+            $obj.Results += "Total logon failures: $count"
+            Write-Output $obj
+        }
+    }
+    # Password spraying:
+    if (($totalfailedlogons -gt $maxfailedlogons) -and ($totalfailedaccounts -gt 1)) {
+        $obj.Message="High number of total logon failures for multiple accounts"
+        $obj.Results= "Total accounts: $totalfailedaccounts`n"
+        $obj.Results+= "Total logon failures: $totalfailedlogons`n"
+        Write-Output $obj
     }
 } 
 
@@ -393,7 +457,7 @@ function Create-Filter($file, $logname)
     # Return the Get-Winevent filter 
     #
     $sys_events="7030,7036,7045,7040"
-    $sec_events="4688,4720,4728,4732,4625"
+    $sec_events="4688,4672,4720,4728,4732,4756,4625"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
