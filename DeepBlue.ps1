@@ -50,6 +50,9 @@ function Main {
     $failedlogons=@{}   # HashTable of failed logons per user
     $totalfailedlogons=0 # Total number of failed logons (for all accounts)
     $totalfailedaccounts=0 # Total number of accounts with a failed logon
+    # Track total Sensitive Privilege Use occurrences
+    $totalsensprivuse=0
+    $maxtotalsensprivuse=4
     # Admin logon variables:
     $totaladminlogons=0  # Total number of logons with SeDebugPrivilege
     $maxadminlogons=10   # Alert after this many admin logons
@@ -172,7 +175,22 @@ function Main {
                     $totalfailedaccounts+=1   
                 }
             }
+            ElseIf($event.id -eq 4673){
+                # Sensitive Privilege Use (Mimikatz)
+                $totalsensprivuse+=1
+                # use -eq here to avoid multiple log notices
+                if ($totalsensprivuse -eq $maxtotalsensprivuse) {
+                    $obj.Message = "Sensititive Privilege Use Exceeds Threshold"
+                    $obj.Results = "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made.`n"
 
+                    $username=$eventXML.Event.EventData.Data[1]."#text"
+                    $domainname=$eventXML.Event.EventData.Data[2]."#text"
+
+                    $obj.Results += "Username: $username`n"
+                    $obj.Results += "Domain Name: $domainname`n"
+                    Write-Output $obj
+                }
+            }
         }
         ElseIf ($logname -eq "System"){
             if ($event.id -eq 7045){
@@ -457,7 +475,7 @@ function Create-Filter($file, $logname)
     # Return the Get-Winevent filter 
     #
     $sys_events="7030,7036,7045,7040"
-    $sec_events="4688,4672,4720,4728,4732,4756,4625"
+    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
