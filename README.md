@@ -77,7 +77,7 @@ or:
 - Windows PowerShell 
 - Sysmon
 
-### Command Lines Logs processed
+### Command Line Logs processed
 
 See 'Logging setup' section below for how to configure these logs
 
