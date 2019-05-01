@@ -14,9 +14,10 @@ Sample evtx files are in the .\evtx directory
 
 ## Table of Contents  
 - [Usage](#usage)  
-- [Examples](#examples) 
-- [Logging setup](#logging-setup)
+- [Syntax](#syntax) 
 - [Detected events](#detected-events)
+- [Examples](#examples)
+- [Logging setup](#logging-setup)
 - See the [DeepBlue.py Readme](README-DeepBlue.py.md) for information on DeepBlue.py
 - See the [DeepWhite Readme](README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
 
@@ -42,7 +43,7 @@ See `get-help Set-ExecutionPolicy` for more options.
 
 Please note that "Set-ExecutionPolicy is not a security control" (quoting @Ben0xA)
 
-## Examples:
+## Syntax:
 
 ### Process local Windows security event log (PowerShell must be run as Administrator):
 
@@ -84,6 +85,44 @@ See 'Logging setup' section below for how to configure these logs
 - Windows PowerShell event IDs 4103 and 4104
 - Sysmon event ID 1
 
+## Detected events
+
+* Suspicious account behavior
+  * User creation
+  * User added to local/global/universal groups
+  * Password guessing (multiple logon failures, one account)
+  * Password spraying via failed logon (multiple logon failures, multiple accounts)
+  * Password spraying via explicit credentials
+  * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
+* Command line/Sysmon/PowerShell auditing
+  * Regex searches
+  * Obfuscated commands
+  * PowerShell launched via WMIC or PsExec
+  * Compressed/Base64 encoded commands (with automatic decompression/decoding)
+  * Unsigned EXEs or DLLs
+* Service auditing
+  * Suspicious service creation
+  * Service creation errors
+  * Stopping/starting the Windows Event Log service (potential event log manipulation)
+* EMET & Applocker Blocks
+* Sensitive Privilege Use (Mimikatz)
+
+...and more
+
+## Examples
+
+|Event|Command|
+|-----|-------|
+|Obfuscation (encoding)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx\`|
+|Obfuscation (string)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx`|
+|Password guessing|`.\DeepBlue.ps1 .\evtx\smb-password-guessing-security.evtx`|
+|Password spraying|`.\DeepBlue.ps1 .\evtx\password-spray.evtx`|
+|Mimikatz hashdump|`.\DeepBlue.ps1 .\evtx\mimikatz-privesc-hashdump.evtx`|
+|New user creation|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
+|User added to administrator group|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
+
+
+
 ## Logging setup
 
 ### Security event 4688 (Command line auditing):
@@ -117,30 +156,4 @@ Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/
 DeepBlue and DeepWhite currently use Sysmon events, 1, 6 and 7.
 
 Log SHA256 hashes. Others are fine; DeepBlueCLI will use SHA256.
-
-## Detected events
-
-* Suspicious account behavior
-  * User creation
-  * User added to local/global/universal groups
-  * Password guessing (multiple logon failures, one account)
-  * Password spraying via failed logon (multiple logon failures, multiple accounts)
-  * Password spraying via explicit credentials
-  * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
-* Command line/Sysmon/PowerShell auditing
-  * Regex searches
-  * Obfuscated commands
-  * PowerShell launched via WMIC or PsExec
-  * Compressed/Base64 encoded commands (with automatic decompression/decoding)
-  * Unsigned EXEs or DLLs
-* Service auditing
-  * Suspicious service creation
-  * Service creation errors
-  * Stopping/starting the Windows Event Log service (potential event log manipulation)
-* EMET & Applocker Blocks
-* Sensitive Privilege Use (Mimikatz)
-
-...and more
-
-
 
