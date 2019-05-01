@@ -1,6 +1,6 @@
 # DeepBlueCLI
 
-DeepBlueCLI 2.01
+DeepBlueCLI - a PowerShell Module for Threat Hunting via Windows Event Logs
 
 Eric Conrad, Backshore Communications, LLC
 
