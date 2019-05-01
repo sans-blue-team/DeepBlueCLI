@@ -14,7 +14,6 @@ Sample evtx files are in the .\evtx directory
 
 ## Table of Contents  
 - [Usage](#usage)  
-- [Syntax](#syntax) 
 - [Detected events](#detected-events)
 - [Examples](#examples)
 - [Logging setup](#logging-setup)
@@ -42,8 +41,6 @@ This command will bypass Set-Execution entirely:
 See `get-help Set-ExecutionPolicy` for more options.
 
 Please note that "Set-ExecutionPolicy is not a security control" (quoting @Ben0xA)
-
-## Syntax:
 
 ### Process local Windows security event log (PowerShell must be run as Administrator):
 
