@@ -14,6 +14,7 @@ Sample evtx files are in the .\evtx directory
 
 ## Table of Contents  
 - [Usage](#usage)  
+- [Windows Event Logs processed](#windows-event-logs-processed)
 - [Detected events](#detected-events)
 - [Examples](#examples)
 - [Logging setup](#logging-setup)
