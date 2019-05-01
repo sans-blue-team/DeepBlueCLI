@@ -25,19 +25,13 @@ Sample evtx files are in the .\evtx directory
 
 `.\DeepBlue.ps1 <event log name> <evtx filename>`
 
-If you see this error:
-
-`.\DeepBlue.ps1 : File .\DeepBlue.ps1 cannot be loaded because running scripts is
+If you see this error: `.\DeepBlue.ps1 : File .\DeepBlue.ps1 cannot be loaded because running scripts is
 disabled on this system. For more information, see about_Execution_Policies at
 http://go.microsoft.com/fwlink/?LinkID=135170.`
 
-You must run Set-ExecutionPolicy as Administrator, here is an example (this will warn every time you run a ps1 script):
+You must run Set-ExecutionPolicy as Administrator, here is an example (this will warn every time you run a ps1 script): `Set-ExecutionPolicy RemoteSigned`
 
-`Set-ExecutionPolicy RemoteSigned`
-
-This command will bypass Set-Execution entirely:
-
-`Set-ExecutionPolicy Bypass`
+This command will bypass Set-Execution entirely: `Set-ExecutionPolicy Bypass`
 
 See `get-help Set-ExecutionPolicy` for more options.
 
