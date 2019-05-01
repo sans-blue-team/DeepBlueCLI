@@ -44,7 +44,7 @@ Please note that "Set-ExecutionPolicy is not a security control" (quoting @Ben0x
 
 ## Examples:
 
-### Process local Windows security event log (Powershell must be run as Administrator):
+### Process local Windows security event log (PowerShell must be run as Administrator):
 
 `.\DeepBlue.ps1`
 
@@ -73,15 +73,15 @@ or:
 - Windows Security 
 - Windows System
 - Windows Application
-- Windows Powershell 
-- Sysmon (new)
+- Windows PowerShell 
+- Sysmon
 
 ### Command Lines Logs processed
 
 See 'Logging setup' section below for how to configure these logs
 
 - Windows Security event ID 4688 
-- Windows Powershell event IDs 4103 and 4104
+- Windows PowerShell event IDs 4103 and 4104
 - Sysmon event ID 1
 
 ## Logging setup
@@ -127,10 +127,10 @@ Log SHA256 hashes. Others are fine; DeepBlueCLI will use SHA256.
   * Password spraying via failed logon (multiple logon failures, multiple accounts)
   * Password spraying via explicit credentials
   * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
-* Command line/Sysmon/Powershell auditing
+* Command line/Sysmon/PowerShell auditing
   * Regex searches
   * Obfuscated commands
-  * Powershell launched via WMIC or PsExec
+  * PowerShell launched via WMIC or PsExec
   * Compressed/Base64 encoded commands (with automatic decompression/decoding)
   * Unsigned EXEs or DLLs
 * Service auditing
