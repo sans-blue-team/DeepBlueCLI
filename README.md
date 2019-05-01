@@ -105,6 +105,7 @@ See 'Logging setup' section below for how to configure these logs
 
 |Event|Command|
 |-----|-------|
+|Event log manipulation|`.\DeepBlue.ps1 .\evtx\disablestop-eventlog.evtx`|
 |Metasploit native target (security)|`.\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-security.evtx`|
 |Metasploit native target (system)|`.\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-system.evtx`|
 |Metasploit PowerShell target (security)|` .\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-security.evtx`|
