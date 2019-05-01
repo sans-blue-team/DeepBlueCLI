@@ -44,7 +44,7 @@ Please note that "Set-ExecutionPolicy is not a security control" (quoting @Ben0x
 
 ## Examples:
 
-### Process local Windows security event log:
+### Process local Windows security event log (Powershell must be run as Administrator):
 
 `.\DeepBlue.ps1`
 
@@ -123,8 +123,9 @@ Log SHA256 hashes. Others are fine; DeepBlueCLI will use SHA256.
 * Suspicious account behavior
   * User creation
   * User added to local/global/universal groups
-  * Password guessing (multiple login failures, one account)
-  * Password spraying (multiple login failures, multiple accounts)
+  * Password guessing (multiple logon failures, one account)
+  * Password spraying via failed logon (multiple logon failures, multiple accounts)
+  * Password spraying via explicit credentials
   * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
 * Command line/Sysmon/Powershell auditing
   * Regex searches
