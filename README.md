@@ -113,15 +113,18 @@ See 'Logging setup' section below for how to configure these logs
 
 |Event|Command|
 |-----|-------|
+|Metasploit native target (security log)|` .\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-security.evtx`|
+|Metasploit native target (system log)|` .\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-system.evtx`|
+|Mimikatz hashdump|`.\DeepBlue.ps1 .\evtx\mimikatz-privesc-hashdump.evtx`|
+|New user creation|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
 |Obfuscation (encoding)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx\`|
 |Obfuscation (string)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx`|
 |Password guessing|`.\DeepBlue.ps1 .\evtx\smb-password-guessing-security.evtx`|
 |Password spraying|`.\DeepBlue.ps1 .\evtx\password-spray.evtx`|
-|Mimikatz hashdump|`.\DeepBlue.ps1 .\evtx\mimikatz-privesc-hashdump.evtx`|
-|New user creation|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
+|PowerSploit (security log)|`.\DeepBlue.ps1 .\evtx\powersploit-security.evtx`|
+|PowerSploit (system log)|`.\DeepBlue.ps1 .\evtx\powersploit-system.evtx`|
+|PSAttack|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx`|
 |User added to administrator group|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
-
-
 
 ## Logging setup
 
