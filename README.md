@@ -96,8 +96,11 @@ See 'Logging setup' section below for how to configure these logs
   * Suspicious service creation
   * Service creation errors
   * Stopping/starting the Windows Event Log service (potential event log manipulation)
+* Mimikatz
+  * `lsadump::sam`
+  * `token::elevate`
 * EMET & Applocker Blocks
-* Sensitive Privilege Use (Mimikatz)
+
 
 ...and more
 
