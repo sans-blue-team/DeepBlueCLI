@@ -113,7 +113,7 @@ See 'Logging setup' section below for how to configure these logs
 |Mimikatz `lsadump::sam`|`.\DeepBlue.ps1 .\evtx\mimikatz-privesc-hashdump.evtx`|
 |Mimiktaz `token::elevate`|`.\DeepBlue.ps1 .\evtx\mimikatz-privilegedebug-tokenelevate-hashdump.evtx`|
 |New user creation|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
-|Obfuscation (encoding)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx\`|
+|Obfuscation (encoding)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-encoding-menu.evtx`|
 |Obfuscation (string)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx`|
 |Password guessing|`.\DeepBlue.ps1 .\evtx\smb-password-guessing-security.evtx`|
 |Password spraying|`.\DeepBlue.ps1 .\evtx\password-spray.evtx`|
