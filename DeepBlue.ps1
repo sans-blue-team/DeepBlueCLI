@@ -149,7 +149,25 @@ function Main {
                         -And $privileges -Match "SeSystemEnvironmentPrivilege" `
                         -And $privileges -Match "SeImpersonatePrivilege" `
                         -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
-                    $obj.Message = "Mimikatz token::elevate Privilege Escalation" 
+                    $obj.Message = "Mimikatz token::elevate Privilege Use" 
+                    $obj.Results = "Username: $username`n"
+                    $obj.Results += "Domain: $domain`n"
+                    $obj.Results += "User SID: $securityid`n"
+                    $pprivileges = $privileges -replace "`n",", " -replace "\s+"," "
+                    $obj.Results += "Privileges: $pprivileges"
+                    Write-Output($obj)
+                }
+                # This unique privilege list is used by Metasploit exploit/windows/smb/psexec (v5.0.4 tested)
+                If ($privileges -Match "SeSecurityPrivilege" `
+                        -And $privileges -Match "SeBackupPrivilege" `
+                        -And $privileges -Match "SeRestorePrivilege" `
+                        -And $privileges -Match "SeTakeOwnershipPrivilege" `
+                        -And $privileges -Match "SeDebugPrivilege" `
+                        -And $privileges -Match "SeSystemEnvironmentPrivilege" `
+                        -And $privileges -Match "SeLoadDriverPrivilege" `
+                        -And $privileges -Match "SeImpersonatePrivilege" `
+                        -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
+                    $obj.Message = "Metasploit psexec Privilege Use" 
                     $obj.Results = "Username: $username`n"
                     $obj.Results += "Domain: $domain`n"
                     $obj.Results += "User SID: $securityid`n"
