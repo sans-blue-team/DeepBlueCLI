@@ -138,7 +138,7 @@ For example:
 |HTML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Html|
 |JSON|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Json|
 |GridView|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Out-GridView|
-|XML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx| ConvertTo-Xml|
+|XML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Xml|
 
 ## Logging setup
 
