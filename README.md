@@ -36,7 +36,7 @@ This command will bypass Set-Execution entirely: `Set-ExecutionPolicy Bypass`
 
 See `get-help Set-ExecutionPolicy` for more options.
 
-Please note that "Set-ExecutionPolicy is not a security control" (quoting @Ben0xA)
+Please note that "Set-ExecutionPolicy is not a security control" (quoting [@Ben0xA](https://twitter.com/ben0xa)
 
 ### Process local Windows security event log (PowerShell must be run as Administrator):
 
