@@ -17,6 +17,7 @@ Sample evtx files are in the .\evtx directory
 - [Windows Event Logs processed](#windows-event-logs-processed)
 - [Detected events](#detected-events)
 - [Examples](#examples)
+- [Output](#output)
 - [Logging setup](#logging-setup)
 - See the [DeepBlue.py Readme](README-DeepBlue.py.md) for information on DeepBlue.py
 - See the [DeepWhite Readme](README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
@@ -124,6 +125,20 @@ See 'Logging setup' section below for how to configure these logs
 |PowerSploit (system)|`.\DeepBlue.ps1 .\evtx\powersploit-system.evtx`|
 |PSAttack|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx`|
 |User added to administrator group|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
+
+## Output
+
+DeepBlueCLI outputs in PowerShell objects, allowing a variety of output methods and types, including JSON, HTML, CSV, etc.
+
+For example:
+
+|Output Type|Syntax|
+|-----------|------|
+|CSV|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Csv|
+|HTML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Html|
+|JSON|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Json|
+|GridView|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Out-GridView|
+|XML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx| ConvertTo-Xml|
 
 ## Logging setup
 
