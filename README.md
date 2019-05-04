@@ -134,11 +134,11 @@ For example:
 
 |Output Type|Syntax|
 |-----------|------|
-|CSV|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Csv|
-|GridView|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Out-GridView|
-|HTML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Html|
-|JSON|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Json|
-|XML|.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Xml|
+|CSV|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Csv`|
+|GridView|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Out-GridView`|
+|HTML|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Html`|
+|JSON|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Json`|
+|XML|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Xml`|
 
 ## Logging setup
 
