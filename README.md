@@ -19,24 +19,15 @@ Sample evtx files are in the .\evtx directory
 - [Examples](#examples)
 - [Output](#output)
 - [Logging setup](#logging-setup)
-- See the [DeepBlue.py Readme](README-DeepBlue.py.md) for information on DeepBlue.py
-- See the [DeepWhite Readme](README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
+- See the [DeepBlue.py Readme](READMEs/README-DeepBlue.py.md) for information on DeepBlue.py
+- See the [DeepWhite Readme](READMEs/README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
 
 ## Usage:
 
 `.\DeepBlue.ps1 <event log name> <evtx filename>`
 
-If you see this error: `.\DeepBlue.ps1 : File .\DeepBlue.ps1 cannot be loaded because running scripts is
-disabled on this system. For more information, see about_Execution_Policies at
-http://go.microsoft.com/fwlink/?LinkID=135170.`
-
-You must run Set-ExecutionPolicy as Administrator, here is an example (this will warn every time you run a ps1 script): `Set-ExecutionPolicy RemoteSigned`
-
-This command will bypass Set-Execution entirely: `Set-ExecutionPolicy Bypass`
-
-See `get-help Set-ExecutionPolicy` for more options.
-
-Please note that "Set-ExecutionPolicy is not a security control" (quoting [@Ben0xA](https://twitter.com/ben0xa))
+See the [Set-ExecutionPolicy Readme](READMEs/Set-ExecutionPolicy.md) if you receive a 'running scripts is
+disabled on this system' error.
 
 ### Process local Windows security event log (PowerShell must be run as Administrator):
 
