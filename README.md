@@ -135,6 +135,8 @@ For example:
 |Output Type|Syntax|
 |-----------|------|
 |CSV|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Csv`|
+|Format list (default)|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Format-List`|
+|Format table|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Format-Table`|
 |GridView|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| Out-GridView`|
 |HTML|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Html`|
 |JSON|`.\DeepBlue.ps1 .\evtx\psattack-security.evtx \| ConvertTo-Json`|
