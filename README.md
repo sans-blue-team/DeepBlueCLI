@@ -41,17 +41,9 @@ or:
 
 `.\DeepBlue.ps1 -log system`
 
-or:
-
-`.\DeepBlue.ps1 "" system`
-
 ### Process evtx file:
 
 `.\DeepBlue.ps1 .\evtx\new-user-security.evtx`
-
-or:
-
-`.\DeepBlue.ps1 -file .\evtx\new-user-security.evtx`
 
 ## Windows Event Logs processed
 
