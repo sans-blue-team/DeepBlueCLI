@@ -6,7 +6,7 @@ Eric Conrad, Backshore Communications, LLC
 
 deepblue `at` backshore `dot` net
 
-Twitter: @eric_conrad
+Twitter: [@eric_conrad](https://twitter.com/eric_conrad)
 
 http://ericconrad.com
 
@@ -36,7 +36,7 @@ This command will bypass Set-Execution entirely: `Set-ExecutionPolicy Bypass`
 
 See `get-help Set-ExecutionPolicy` for more options.
 
-Please note that "Set-ExecutionPolicy is not a security control" (quoting [@Ben0xA](https://twitter.com/ben0xa)
+Please note that "Set-ExecutionPolicy is not a security control" (quoting [@Ben0xA](https://twitter.com/ben0xa))
 
 ### Process local Windows security event log (PowerShell must be run as Administrator):
 
@@ -166,7 +166,7 @@ See the following for more information:
  - https://logrhythm.com/blog/powershell-command-line-logging/
  - http://hackerhurricane.blogspot.com/2014/11/i-powershell-logging-what-everyone.html
 
-Thank you: @heinzarelli and @HackerHurricane
+Thank you: [@heinzarelli](https://twitter.com/heinzarelli) and [@HackerHurricane](https://twitter.com/hackerhurricane)
 
 ### Sysmon
 
