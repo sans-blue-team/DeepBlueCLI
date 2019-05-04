@@ -55,7 +55,7 @@ or:
 
 ### Command Line Logs processed
 
-See 'Logging setup' section below for how to configure these logs
+See [Logging setup](#logging-setup) section below for how to configure these logs
 
 - Windows Security event ID 4688 
 - Windows PowerShell event IDs 4103 and 4104
