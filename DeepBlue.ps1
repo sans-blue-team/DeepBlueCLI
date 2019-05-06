@@ -158,23 +158,24 @@ function Main {
                     Write-Output($obj)
                 }
                 # This unique privilege list is used by Metasploit exploit/windows/smb/psexec (v5.0.4 tested)
-                If ($privileges -Match "SeSecurityPrivilege" `
-                        -And $privileges -Match "SeBackupPrivilege" `
-                        -And $privileges -Match "SeRestorePrivilege" `
-                        -And $privileges -Match "SeTakeOwnershipPrivilege" `
-                        -And $privileges -Match "SeDebugPrivilege" `
-                        -And $privileges -Match "SeSystemEnvironmentPrivilege" `
-                        -And $privileges -Match "SeLoadDriverPrivilege" `
-                        -And $privileges -Match "SeImpersonatePrivilege" `
-                        -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
-                    $obj.Message = "Metasploit psexec Privilege Use" 
-                    $obj.Results = "Username: $username`n"
-                    $obj.Results += "Domain: $domain`n"
-                    $obj.Results += "User SID: $securityid`n"
-                    $pprivileges = $privileges -replace "`n",", " -replace "\s+"," "
-                    $obj.Results += "Privileges: $pprivileges"
-                    Write-Output($obj)
-                }
+#               # Disabling due to false-positive with MS Exchange Server
+#                If ($privileges -Match "SeSecurityPrivilege" `
+#                        -And $privileges -Match "SeBackupPrivilege" `
+#                        -And $privileges -Match "SeRestorePrivilege" `
+#                        -And $privileges -Match "SeTakeOwnershipPrivilege" `
+#                        -And $privileges -Match "SeDebugPrivilege" `
+#                        -And $privileges -Match "SeSystemEnvironmentPrivilege" `
+#                        -And $privileges -Match "SeLoadDriverPrivilege" `
+#                        -And $privileges -Match "SeImpersonatePrivilege" `
+#                        -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
+#                    $obj.Message = "Metasploit psexec Privilege Use" 
+#                    $obj.Results = "Username: $username`n"
+#                    $obj.Results += "Domain: $domain`n"
+#                    $obj.Results += "User SID: $securityid`n"
+#                    $pprivileges = $privileges -replace "`n",", " -replace "\s+"," "
+#                    $obj.Results += "Privileges: $pprivileges"
+#                    Write-Output($obj)
+#                }
             }
             ElseIf ($event.id -eq 4720){ 
                 # A user account was created.
@@ -471,7 +472,7 @@ function Main {
         if($multipleadminlogons.$username){
             $obj.Message="Multiple admin logons for one account"
             $obj.Results= "Username: $username`n"
-            $obj.Results += "User SIDs: $securityid"
+            $obj.Results += "User SID Access Count: " + $securityid.split().Count
             Write-Output $obj
         }
     }
