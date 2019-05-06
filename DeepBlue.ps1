@@ -137,26 +137,27 @@ function Main {
                     #$adminlogons($username)+=($securitysid)
                 }
                 # This unique privilege list is used by Mimikatz 2.2.0
-                If ($privileges -Match "SeAssignPrimaryTokenPrivilege" `
-                        -And $privileges -Match "SeTcbPrivilege" `
-                        -And $privileges -Match "SeSecurityPrivilege" `
-                        -And $privileges -Match "SeTakeOwnershipPrivilege" `
-                        -And $privileges -Match "SeLoadDriverPrivilege" `
-                        -And $privileges -Match "SeBackupPrivilege" `
-                        -And $privileges -Match "SeRestorePrivilege" `
-                        -And $privileges -Match "SeDebugPrivilege" `
-                        -And $privileges -Match "SeAuditPrivilege" `
-                        -And $privileges -Match "SeSystemEnvironmentPrivilege" `
-                        -And $privileges -Match "SeImpersonatePrivilege" `
-                        -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
-                    $obj.Message = "Mimikatz token::elevate Privilege Use" 
-                    $obj.Results = "Username: $username`n"
-                    $obj.Results += "Domain: $domain`n"
-                    $obj.Results += "User SID: $securityid`n"
-                    $pprivileges = $privileges -replace "`n",", " -replace "\s+"," "
-                    $obj.Results += "Privileges: $pprivileges"
-                    Write-Output($obj)
-                }
+                # Disabling due to false-positive with MS Exchange.
+#                If ($privileges -Match "SeAssignPrimaryTokenPrivilege" `
+#                        -And $privileges -Match "SeTcbPrivilege" `
+#                        -And $privileges -Match "SeSecurityPrivilege" `
+#                        -And $privileges -Match "SeTakeOwnershipPrivilege" `
+#                        -And $privileges -Match "SeLoadDriverPrivilege" `
+#                        -And $privileges -Match "SeBackupPrivilege" `
+#                        -And $privileges -Match "SeRestorePrivilege" `
+#                        -And $privileges -Match "SeDebugPrivilege" `
+#                        -And $privileges -Match "SeAuditPrivilege" `
+#                        -And $privileges -Match "SeSystemEnvironmentPrivilege" `
+#                        -And $privileges -Match "SeImpersonatePrivilege" `
+#                        -And $privileges -Match "SeDelegateSessionUserImpersonatePrivilege") {
+#                    $obj.Message = "Mimikatz token::elevate Privilege Use" 
+#                    $obj.Results = "Username: $username`n"
+#                    $obj.Results += "Domain: $domain`n"
+#                    $obj.Results += "User SID: $securityid`n"
+#                    $pprivileges = $privileges -replace "`n",", " -replace "\s+"," "
+#                    $obj.Results += "Privileges: $pprivileges"
+#                    Write-Output($obj)
+#                }
                 # This unique privilege list is used by Metasploit exploit/windows/smb/psexec (v5.0.4 tested)
 #               # Disabling due to false-positive with MS Exchange Server
 #                If ($privileges -Match "SeSecurityPrivilege" `
