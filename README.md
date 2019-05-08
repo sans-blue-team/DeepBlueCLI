@@ -82,7 +82,6 @@ See [Logging setup](#logging-setup) section below for how to configure these log
   * Stopping/starting the Windows Event Log service (potential event log manipulation)
 * Mimikatz
   * `lsadump::sam`
-  * `token::elevate`
 * EMET & Applocker Blocks
 
 
@@ -98,7 +97,6 @@ See [Logging setup](#logging-setup) section below for how to configure these log
 |Metasploit PowerShell target (security)|` .\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-security.evtx`|
 |Metasploit PowerShell target (system)|` .\DeepBlue.ps1 .\evtx\metasploit-psexec-native-target-system.evtx`|
 |Mimikatz `lsadump::sam`|`.\DeepBlue.ps1 .\evtx\mimikatz-privesc-hashdump.evtx`|
-|Mimiktaz `token::elevate`|`.\DeepBlue.ps1 .\evtx\mimikatz-privilegedebug-tokenelevate-hashdump.evtx`|
 |New user creation|`.\DeepBlue.ps1 .\evtx\new-user-security.evtx`|
 |Obfuscation (encoding)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-encoding-menu.evtx`|
 |Obfuscation (string)|`.\DeepBlue.ps1 .\evtx\Powershell-Invoke-Obfuscation-string-menu.evtx`|
