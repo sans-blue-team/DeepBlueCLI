@@ -71,9 +71,11 @@ See [Logging setup](#logging-setup) section below for how to configure these log
   * Password spraying via explicit credentials
   * Bloodhound (admin privileges assigned to the same account with multiple Security IDs)
 * Command line/Sysmon/PowerShell auditing
+  * Long command lines
   * Regex searches
   * Obfuscated commands
   * PowerShell launched via WMIC or PsExec
+  * PowerShell Net.WebClient Downloadstring
   * Compressed/Base64 encoded commands (with automatic decompression/decoding)
   * Unsigned EXEs or DLLs
 * Service auditing
