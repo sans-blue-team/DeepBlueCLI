@@ -136,7 +136,7 @@ Enable Windows command-line auditing: https://support.microsoft.com/en-us/kb/300
 Requires auditing logon failures: https://technet.microsoft.com/en-us/library/cc976395.aspx
 ### PowerShell auditing (PowerShell 5.0):
 
-DeepBlueCLI uses module logging (PowerShell event 4013) and script block logging (4104). It does not use transcription.
+DeepBlueCLI uses module logging (PowerShell event 4103) and script block logging (4104). It does not use transcription.
 
 See: https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html
 
