@@ -10,7 +10,7 @@
 # More features to come
 
 # Requires libevtx: https://github.com/libyal/libevtx
- 
+
 import sys
 import re
 import csv
@@ -45,6 +45,25 @@ def CheckObfu(cli,minpercent,minlength):
             string += " - Potential command obfuscation: "+str(int(percent))+"% alpha characters"
     return(string)
 
+
+def CheckPasswordSpray(targetusername, accessingusername, passspraytrack, passsprayloginmax=6, passsprayuniqusermax=6):
+    passspraytrack[targetusername] = passspraytrack[targetusername] + 1 if targetusername in passspraytrack else 1
+    if passspraytrack[targetusername] > passsprayloginmax:
+        # This user account has exceedd the threshoold for explicit logins. Identify the total number
+        # of accounts that also have similar explicit login patterns.
+        targetusernames = []
+        for t in passspraytrack:
+            if passspraytrack[t] > passsprayloginmax:
+                targetusernames += [t]
+
+        if len(targetusernames) > passsprayuniqusermax:
+            print "Distributed Account Explicit Credential Use (Password Spray Attack)"
+            print "The use of multiple user account access attempts with explicit credentials is "
+            print "an indicator of a password spray attack.\n"
+            print "Target usernames: " + " ".join(targetusernames)
+            print "Accessing username: " + accessingusername
+            passspraytrack.clear()
+
 def CheckCommand(time, log, eventid, cli):
     minpercent=.65
     minlength=25 # Minimum CLI length to check for obfuscation
@@ -57,7 +76,7 @@ def CheckCommand(time, log, eventid, cli):
         decoded=base64.b64decode(b64)
         decoded=str(filter(decoded))  # Convert base64 to ASCII
         string+=CheckRegex(regexes,decoded)
-    string += CheckObfu(cli,minpercent,minlength) 
+    string += CheckObfu(cli,minpercent,minlength)
     if(string):
         print "Date: %s\nLog: %s\nEventID: %s" % (time,log,eventid)
         print "Results:\n%s\n" % (string.rstrip())
@@ -80,11 +99,13 @@ if len(sys.argv)==2:
                     if not row[0].startswith('#'):
                         regexes.append(row)
         else:
-            print "Error: cannot open "+regexfile+"\n" 
+            print "Error: cannot open "+regexfile+"\n"
     else:
         print "Error: no such file: %s\n" % (sys.argv)
 else:
     print "Error: filename required as an argument\n"
+
+passspraytrack = {}
 
 if (filename and regexes):
     process=""
@@ -99,6 +120,8 @@ if (filename and regexes):
         eventid=""
         cli=""
         path=""
+        targetusername=""
+        accessingusername=""
         for line in iter(process.stdout.readline,''):
             if re.search("^Written time",line):
                 #Written time			: Aug 30, 2017 19:16:26.133985000 UTC
@@ -116,17 +139,25 @@ if (filename and regexes):
                 #Source name			: Microsoft-Windows-PowerShell
                 if log=="Microsoft-Windows-PowerShell":
                     cli = line[14:].rstrip()
+            elif re.search("^String: 2",line):
+                if log=="Microsoft-Windows-Security-Auditing" and eventid=="4648":
+                    accessingusername=line[14:].rstrip()
             elif re.search("^String: 5",line):
                 if log=="Microsoft-Windows-PowerShell":
                     path = line[14:].rstrip()
                 elif log=="Microsoft-Windows-Sysmon":
                     cli = line[14:].rstrip()
+            elif re.search("^String: 6",line):
+                if log=="Microsoft-Windows-Security-Auditing" and eventid=="4648":
+                    targetusername=line[14:].rstrip()
             elif re.search("^String: 9",line):
                 if log=="Microsoft-Windows-Security-Auditing":
                     cli = line[14:].rstrip()
             elif re.search("^$",line):
                 # 4688: CLI via System log
                 # 4104: PowerShell CLI if path is blank (non-blank path == PowerShell script)
-                #    1: Sysmon CLI 
+                #    1: Sysmon CLI
                 if ((eventid=="4688")or(eventid=="1")or((eventid=="4104")and(path==""))):
                     CheckCommand(time,log,eventid,cli)
+                if (eventid=="4648"):
+                    CheckPasswordSpray(targetusername, accessingusername, passspraytrack)
