@@ -46,7 +46,7 @@ function Main {
     #"Processing the " + $logname + " log..."
     $filter=Create-Filter $file $logname
     # Passworg guessing/spraying variables:
-    $maxfailedlogons=25 # Alert after this many failed logons
+    $maxfailedlogons=5 # Alert after this many failed logons
     $failedlogons=@{}   # HashTable of failed logons per user
     $totalfailedlogons=0 # Total number of failed logons (for all accounts)
     $totalfailedaccounts=0 # Total number of accounts with a failed logon
