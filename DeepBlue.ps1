@@ -32,7 +32,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 # http://ericconrad.com
 #
 
-param ([string]$file=$env:file,[string]$log=$env:log)           
+param ([string]$file=$env:file,[string]$log=$env:log)
 
 function Main {
     # Set up the global variables
@@ -77,7 +77,7 @@ function Main {
     }
     catch {
         Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-    	Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
+        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
         Write-Host "Exiting...`n"
         exit
     }
@@ -91,7 +91,7 @@ function Main {
             Results = ""
             Command = ""
             Decoded = ""
-        }        
+        }
         $eventXML = [xml]$event.ToXml()
         $servicecmd=0 # CLIs via service creation get extra checks, this defaults to 0 (no extra checks)
         if ($logname -eq "Security"){
@@ -100,7 +100,7 @@ function Main {
                 $commandline=$eventXML.Event.EventData.Data[8]."#text" # Process Command Line
                 $creator=$eventXML.Event.EventData.Data[13]."#text"    # Creator Process Name
                 if ($commandline){
-                    Check-Command
+                    Check-Command -EventID 4688
                 }
             }
             ElseIf ($event.id -eq 4672){ 
@@ -191,7 +191,7 @@ function Main {
                 # A member was added to a security-enabled (global|local|universal) group.
                 $groupname=$eventXML.Event.EventData.Data[2]."#text"
                 # Check if group is Administrators, may later expand to all groups
-                if ($groupname -eq "Administrators"){    
+                if ($groupname -eq "Administrators"){
                     $username=$eventXML.Event.EventData.Data[0]."#text"
                     $securityid=$eventXML.Event.EventData.Data[1]."#text"
                     switch ($event.id){
@@ -294,7 +294,7 @@ function Main {
                 # Check for suspicious cmd
                 if ($commandline){
                     $servicecmd=1 # CLIs via service creation get extra checks 
-                    Check-Command
+                    Check-Command -EventID 7045
                 }
             }
             ElseIf ($event.id -eq 7030){
@@ -400,7 +400,7 @@ function Main {
                     # Remove every line after the "Host Application = " line.
                     $commandline = $commandline -Replace "(?ms)`n.*$",""
                     if ($commandline){
-                      Check-Command
+                      Check-Command -EventID 4103
                     }
                 }
             }
@@ -435,7 +435,7 @@ function Main {
                 if (-not ($eventxml.Event.EventData.Data[4]."#text")){
                       $commandline=$eventXML.Event.EventData.Data[2]."#text"
                       if ($commandline){
-                          Check-Command
+                          Check-Command -EventID 4104
                       }
                 }
             }
@@ -446,7 +446,7 @@ function Main {
                 $creator=$eventXML.Event.EventData.Data[14]."#text"
                 $commandline=$eventXML.Event.EventData.Data[4]."#text"
                 if ($commandline){
-                    Check-Command
+                    Check-Command -EventID 1
                 }
             }
             ElseIf ($event.id -eq 7){
@@ -474,6 +474,7 @@ function Main {
             $obj.Message="Multiple admin logons for one account"
             $obj.Results= "Username: $username`n"
             $obj.Results += "User SID Access Count: " + $securityid.split().Count
+            $obj.EventId = 4672
             Write-Output $obj
         }
     }
@@ -484,6 +485,7 @@ function Main {
             $obj.Message="High number of logon failures for one account"
             $obj.Results= "Username: $username`n"
             $obj.Results += "Total logon failures: $count"
+            $obj.EventId = 4625
             Write-Output $obj
         }
     }
@@ -492,6 +494,7 @@ function Main {
         $obj.Message="High number of total logon failures for multiple accounts"
         $obj.Results= "Total accounts: $totalfailedaccounts`n"
         $obj.Results+= "Total logon failures: $totalfailedlogons`n"
+        $obj.EventId = 4625
         Write-Output $obj
     }
 } 
@@ -520,7 +523,7 @@ function Check-Options($file, $log)
         Else{
             write-host $log_error
             exit 1
-        }    
+        }
     }
     else{ # Filename provided, check if it exists:
         if (Test-Path $file){ # File exists. Todo: verify it is an evtx file. 
@@ -592,6 +595,9 @@ function Create-Filter($file, $logname)
 
 
 function Check-Command(){
+
+    Param($EventID)
+
     $text=""
     $base64=""
     # Check to see if command is whitelisted
@@ -642,10 +648,11 @@ function Check-Command(){
         }
         $obj.Command = $commandline
         $obj.Results += $text
+        $obj.EventID = $EventID
         Write-Output $obj
     }
     return
-}    
+}
 
 function Check-Regex($string,$type){
     $regextext="" # Local variable for return output
@@ -672,7 +679,7 @@ function Check-Obfu($string){
     $nobinarystring = $lowercasestring -replace "[01]" # To catch binary encoding
     # Calculate the percent alphanumeric/common symbols
     if ($length -gt 0){
-        $percent=(($length-$noalphastring.length)/$length)    
+        $percent=(($length-$noalphastring.length)/$length)
         # Adjust minpercent for very short commands, to avoid triggering short warnings
         if (($length/100) -lt $minpercent){ 
             $minpercent=($length/100) 
