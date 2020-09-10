@@ -276,6 +276,24 @@ function Main {
                     }
                 }
             }
+            ElseIf ($event.id -eq 1102){ 
+                # The Audit log file was cleared.
+                if ($event.Message){ 
+                    # Security 1102 Message is a blob of text that looks like this:
+                    # The audit log was cleared.
+                    # Subject:
+                    # 	Security ID:	SEC504STUDENT\Sec504
+                    # 	Account Name:	Sec504
+                    # 	Domain Name:	SEC504STUDENT
+                    # 	Logon ID:	0x257CD                    
+                    $array = $event.message -split '\n' # Split each line of the message into an array
+                    $user = Remove-Spaces($array[3])
+                }
+                $obj.Message = "Audit Log Clear"
+                $obj.Results = "The Audit log was cleared.`n"
+                $obj.Results += $user
+                Write-Output $obj
+            }
         }
         ElseIf ($logname -eq "System"){
             if ($event.id -eq 7045){
@@ -336,6 +354,12 @@ function Main {
                     }
                     Write-Output $obj
                 }
+            }
+            ElseIf ($event.id -eq 104){
+                # The System log file was cleared.
+                $obj.Message = "System Log Clear"
+                $obj.Results = "The System log was cleared."
+                Write-Output $obj
             }
         } 
         ElseIf ($logname -eq "Application"){
@@ -562,8 +586,8 @@ function Create-Filter($file, $logname)
 {
     # Return the Get-Winevent filter 
     #
-    $sys_events="7030,7036,7045,7040"
-    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673,4648"
+    $sys_events="7030,7036,7045,7040,104"
+    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673,4648,1102"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
