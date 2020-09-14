@@ -178,11 +178,11 @@ function Main {
 #                    Write-Output($obj)
 #                }
             }
-            ElseIf ($event.id -eq 4720){ 
+            ElseIf ($event.id -eq 4720){
                 # A user account was created.
                 $username=$eventXML.Event.EventData.Data[0]."#text"
                 $securityid=$eventXML.Event.EventData.Data[2]."#text"
-                $obj.Message = "New User Created" 
+                $obj.Message = "New User Created"
                 $obj.Results = "Username: $username`n"
                 $obj.Results += "User SID: $securityid`n"
                 Write-Output $obj
@@ -216,7 +216,7 @@ function Main {
                 }
                 Else{
                     $failedlogons.Set_Item($username,1)
-                    $totalfailedaccounts+=1   
+                    $totalfailedaccounts+=1
                 }
             }
             ElseIf($event.id -eq 4673){
@@ -233,6 +233,53 @@ function Main {
                     $obj.Results += "Username: $username`n"
                     $obj.Results += "Domain Name: $domainname`n"
                     Write-Output $obj
+                }
+            }
+            ElseIf($event.id -eq 4674){
+                # An operation was attempted on a privileged object.
+                if ($event.Message){
+                    # Message is a blob of text that looks like this:
+                    #########################################################
+                    # An operation was attempted on a privileged object.
+                    #
+                    # Subject:
+                    # 	Security ID:		SEC504STUDENT\Sec504
+                    # 	Account Name:		Sec504
+                    # 	Account Domain:		SEC504STUDENT
+                    # 	Logon ID:		
+                    #
+                    # Object:
+                    # 	Object Server:	SC Manager
+                    # 	Object Type:	SERVICE OBJECT
+                    # 	Object Name:	nginx
+                    # 	Object Handle:	
+                    #
+                    # Process Information:
+                    # 	Process ID:	0x21c
+                    # 	Process Name:	C:\Windows\System32\services.exe
+                    #
+                    # Requested Operation:
+                    # 	Desired Access:	WRITE_DAC
+                    #
+                    # 	Privileges:		SeSecurityPrivilege
+                    $array = $event.message -split '\n' # Split each line of the message into an array
+                    $text = $array[0]
+                    $application = Remove-Spaces($array[3])
+                    $user = Remove-Spaces(($array[4] -split ':')[1])
+                    $service = Remove-Spaces(($array[11] -split ':')[1])
+                    $application = Remove-Spaces(($array[16] -split ':	')[1])
+                    $accessreq = Remove-Spaces(($array[19] -split ':')[1])
+
+                    if ($application.ToUpper() -Eq "C:\WINDOWS\SYSTEM32\SERVICES.EXE" `
+                            -And $accessreq.ToUpper() -Match "WRITE_DAC") {
+                        $obj.Message="Possible Hidden Service Attempt"
+                        $obj.Command = ""
+                        $obj.Results = "User requested to modify the Dynamic Access Control (DAC) permissions of a sevice, possibly to hide it from view.`n"
+                        $obj.Results += "User: $user`n"
+                        $obj.Results += "Target service: $service`n"
+                        $obj.Results += "Desired Access: $accessreq`n"
+                        Write-Output $obj
+                    }
                 }
             }
             ElseIf($event.id -eq 4648){
@@ -587,7 +634,7 @@ function Create-Filter($file, $logname)
     # Return the Get-Winevent filter 
     #
     $sys_events="7030,7036,7045,7040,104"
-    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673,4648,1102"
+    $sec_events="4688,4672,4720,4728,4732,4756,4625,4673,4674,4648,1102"
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
