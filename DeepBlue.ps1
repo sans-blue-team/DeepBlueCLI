@@ -274,7 +274,7 @@ function Main {
                             -And $accessreq.ToUpper() -Match "WRITE_DAC") {
                         $obj.Message="Possible Hidden Service Attempt"
                         $obj.Command = ""
-                        $obj.Results = "User requested to modify the Dynamic Access Control (DAC) permissions of a sevice, possibly to hide it from view.`n"
+                        $obj.Results = "User requested to modify the Dynamic Access Control (DAC) permissions of a service, possibly to hide it from view.`n"
                         $obj.Results += "User: $user`n"
                         $obj.Results += "Target service: $service`n"
                         $obj.Results += "Desired Access: $accessreq`n"
