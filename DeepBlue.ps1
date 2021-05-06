@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 
 A PowerShell module for hunt teaming via Windows event logs
@@ -87,7 +87,7 @@ function Main {
             Date    = $event.TimeCreated
             Log     = $logname
             EventID = $event.id
-            Message = ""
+            Message = $event.message
             Results = ""
             Command = ""
             Decoded = ""
@@ -405,7 +405,7 @@ function Main {
             ElseIf ($event.id -eq 104){
                 # The System log file was cleared.
                 $obj.Message = "System Log Clear"
-                $obj.Results = "The System log was cleared."
+                $obj.Results = $event.message
                 Write-Output $obj
             }
         } 
