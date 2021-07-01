@@ -1,4 +1,4 @@
-# DeepBlueCLI command whitelist
+# DeepBlueCLI command ignore list
 # Currently: one entry (regex) per line
 # Read as a CSV file for future growth (may want to add options to each entry)
 #
