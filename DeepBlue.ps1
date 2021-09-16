@@ -537,10 +537,23 @@ function Main {
                  }
              }
         }
+	ElseIf ($logname -eq "WMI-Activity"){
+        # Check commandlines for suspicious commands
+            if ($event.id -eq 5861){
+	        if($event.Message -match ".*CommandLineTemplate\s=\s(.*?);"){	
+                    $command = $event.message
+                    $obj.Message = "Suspicous WMI Event Filter"
+	            $obj.Results += "Event Triggered Execution: WMI - T1546.003`n"
+                    $obj.Results += $event.message
+	            $obj.Command=$matches[0].Split("=")[1]
+	            Write-Output $obj	  
+	        }
+            }
+        }
     }
     # Iterate through admin logons hashtable (key is $username)
     foreach ($username in $adminlogons.Keys) {
-        $securityid=$adminlogons.Get_Item($username)
+        $securityid=$adminlogons.Get_Item($username) 
         if($multipleadminlogons.$username){
             $obj.Message="Multiple admin logons for one account"
             $obj.Results= "Username: $username`n"
@@ -618,6 +631,7 @@ function Check-Options($file, $log)
                 "Microsoft-Windows-AppLocker/EXE and DLL"   {$logname="Applocker"}
                 "Microsoft-Windows-PowerShell/Operational"   {$logname="Powershell"}
                 "Microsoft-Windows-Sysmon/Operational"   {$logname="Sysmon"}
+				"Microsoft-Windows-WMI-Activity/Operational" {$logname="WMI-Activity"}
                 default       {"Logic error 3, should not reach here...";Exit 1}
             }
         }
@@ -639,6 +653,7 @@ function Create-Filter($file, $logname)
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
     $sysmon_events="1,7"
+	$wmi_events="5861"
     if ($file -ne ""){
         switch ($logname){
             "Security"    {$filter="@{path=""$file"";ID=$sec_events}"}
@@ -647,6 +662,7 @@ function Create-Filter($file, $logname)
             "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events}"}
             "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
             "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events}"}
+			"WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events}"}
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
@@ -658,6 +674,7 @@ function Create-Filter($file, $logname)
             "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events}"}
             "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
             "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
+			"WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events}"}
             default       {"Logic error 2, should not reach here...";Exit 1}
         }
     }
