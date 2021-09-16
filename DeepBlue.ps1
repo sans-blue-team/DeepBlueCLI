@@ -631,7 +631,7 @@ function Check-Options($file, $log)
                 "Microsoft-Windows-AppLocker/EXE and DLL"   {$logname="Applocker"}
                 "Microsoft-Windows-PowerShell/Operational"   {$logname="Powershell"}
                 "Microsoft-Windows-Sysmon/Operational"   {$logname="Sysmon"}
-				"Microsoft-Windows-WMI-Activity/Operational" {$logname="WMI-Activity"}
+		"Microsoft-Windows-WMI-Activity/Operational" {$logname="WMI-Activity"}
                 default       {"Logic error 3, should not reach here...";Exit 1}
             }
         }
@@ -662,7 +662,7 @@ function Create-Filter($file, $logname)
             "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events}"}
             "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
             "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events}"}
-			"WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events}"}
+	    "WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events}"}
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
@@ -674,7 +674,7 @@ function Create-Filter($file, $logname)
             "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events}"}
             "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
             "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
-			"WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events}"}
+	    "WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events}"}
             default       {"Logic error 2, should not reach here...";Exit 1}
         }
     }
