@@ -66,6 +66,7 @@ function Main {
     $passspraytrack = @{}
     $passsprayuniqusermax = 6
     $passsprayloginmax = 6
+    $passsprayuniqaccounts = 0
     # Sysmon variables:
     # Check for unsigned EXEs/DLLs. This can be very chatty, so it's disabled. 
     # Set $checkunsigned to 1 to enable:
@@ -311,11 +312,13 @@ function Main {
                         foreach($key in $passspraytrack.keys) {
                             $usernames += $key
                             $usernames += " "
+                            $passsprayuniqaccounts += 1
                         }
                         $obj.Message = "Distributed Account Explicit Credential Use (Password Spray Attack)"
                         $obj.Results = "The use of multiple user account access attempts with explicit credentials is "
                         $obj.Results += "an indicator of a password spray attack.`n"
                         $obj.Results += "Target Usernames: $usernames`n"
+                        $obj.results += "Unique accounts sprayed: $passsprayuniqaccounts`n"
                         $obj.Results += "Accessing Username: $username`n"
                         $obj.Results += "Accessing Host Name: $hostname`n"
                         Write-Output $obj
