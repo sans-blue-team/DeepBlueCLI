@@ -45,7 +45,7 @@ function Main {
     $logname=Check-Options $file $log
     #"Processing the " + $logname + " log..."
     $filter=Create-Filter $file $logname
-    # Passworg guessing/spraying variables:
+    # Password guessing/spraying variables:
     $maxfailedlogons=5 # Alert after this many failed logons
     $failedlogons=@{}   # HashTable of failed logons per user
     $totalfailedlogons=0 # Total number of failed logons (for all accounts)
