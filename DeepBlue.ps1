@@ -40,8 +40,8 @@ function Main {
     $minlength=1000 # Minimum length of command line to alert
     # Load cmd match regexes from csv file, ignore comments
     $regexes = Get-Content ".\regexes.txt" | Select-String '^[^#]' | ConvertFrom-Csv
-    # Load cmd whitelist regexes from csv file, ignore comments
-    $whitelist = Get-Content ".\whitelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
+    # Load cmd safelist regexes from csv file, ignore comments
+    $safelist = Get-Content ".\safelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
     $logname=Check-Options $file $log
     #"Processing the " + $logname + " log..."
     $filter=Create-Filter $file $logname
@@ -671,10 +671,10 @@ function Check-Command(){
 
     $text=""
     $base64=""
-    # Check to see if command is whitelisted
-    foreach ($entry in $whitelist) {
+    # Check to see if command is safelisted
+    foreach ($entry in $safelist) {
         if ($commandline -Match $entry.regex) {
-            # Command is whitelisted, return nothing
+            # Command is safelisted, return nothing
             return
         }
     }

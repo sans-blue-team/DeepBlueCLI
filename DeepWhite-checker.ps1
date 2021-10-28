@@ -3,12 +3,12 @@
 # Plus a (free) VirusTotal API Key: https://www.virustotal.com/en/documentation/public-api/
 #
 $hashdirectory = ".\hashes"
-$whitelistfile=".\file-whitelist.csv"
-# Load the whitelist into a hash table
-if (Test-Path $whitelistfile){
-    $whitelist = Get-Content $whitelistfile | Select-String '^[^#]' | ConvertFrom-Csv
+$safelistfile=".\file-safelist.csv"
+# Load the safelist into a hash table
+if (Test-Path $safelistfile){
+    $safelist = Get-Content $safelistfile | Select-String '^[^#]' | ConvertFrom-Csv
     $hashes=@{}
-    foreach($entry in $whitelist){
+    foreach($entry in $safelist){
         $hashes[$entry.sha256]=$entry.path
     }
 }
@@ -17,7 +17,7 @@ Get-ChildItem $hashdirectory | Foreach-Object{
     if ($_.Name -Match '^[0-9A-F]{64}$'){ # SHA256 hashes are 64 character hex strings
         $SHA256=$_.Name
         if ($hashes.containsKey($SHA256)){
-           Rename-Item -Path "$hashdirectory\$SHA256" -NewName "$SHA256.whitelisted"
+           Rename-Item -Path "$hashdirectory\$SHA256" -NewName "$SHA256.safelisted"
         }
         Else{
             try{

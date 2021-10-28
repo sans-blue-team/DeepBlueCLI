@@ -20,7 +20,7 @@ Sample evtx files are in the .\evtx directory
 - [Output](#output)
 - [Logging setup](#logging-setup)
 - See the [DeepBlue.py Readme](READMEs/README-DeepBlue.py.md) for information on DeepBlue.py
-- See the [DeepWhite Readme](READMEs/README-DeepWhite.md) for information on DeepWhite (detective whitelisting using Sysmon event logs)
+- See the [DeepWhite Readme](READMEs/README-DeepWhite.md) for information on DeepWhite (detective safelisting using Sysmon event logs)
 
 ## Usage:
 
