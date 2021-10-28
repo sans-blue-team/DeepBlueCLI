@@ -10,7 +10,9 @@ Twitter: [@eric_conrad](https://twitter.com/eric_conrad)
 
 http://ericconrad.com
 
-Sample evtx files are in the .\evtx directory
+Sample EVTX files are in the .\evtx directory
+
+**Note** If your antivirus freaks out after downloading DeepBlueCLI: it's likely reacting to the included EVTX files in the .\evtx directory (which contain command-line logs of malicious attacks, among other artifacts). EVTX files are not harmful. You may need to configure your antivrus to ignore the DeepBlueCLI directory.
 
 ## Table of Contents  
 - [Usage](#usage)  
