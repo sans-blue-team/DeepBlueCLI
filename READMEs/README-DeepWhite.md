@@ -1,12 +1,12 @@
 # DeepWhite
 
-Detective whitelisting using Sysmon event logs.
+Detective safelisting using Sysmon event logs.
 
 Parses the Sysmon event logs, grabbing the SHA256 hashes from process creation (event 1), driver load (event 6, sys), and image load (event 7, DLL) events. 
 
-## VirusTotal and Whitelisting setup
+## VirusTotal and Safelisting setup
 
-Setting up VirusTotal hash submissions and whitelisting:
+Setting up VirusTotal hash submissions and safelisting:
 
 The hash checker requires Post-VirusTotal:
 
@@ -59,11 +59,11 @@ You can go *much* further than this with Sysmon. The Sysinternals Sysmon page ha
 
 Also see @swiftonsecurity's awesome Sysmon config here: https://github.com/SwiftOnSecurity/sysmon-config
 
-## Generating a Whitelist
+## Generating a Safelist
 
-Generate a custom whitelist on Windows (note: this is optional):
+Generate a custom safelist on Windows (note: this is optional):
 
 ```
-PS C:\> Get-ChildItem c:\windows\system32 -Include '*.exe','*.dll','*.sys','*.com' -Recurse | Get-FileHash| Export-Csv -Path whitelist.csv
+PS C:\> Get-ChildItem c:\windows\system32 -Include '*.exe','*.dll','*.sys','*.com' -Recurse | Get-FileHash| Export-Csv -Path safelist.csv
 ```
 Note: this will generate (harmless) 'PermissionDenied' warnings for locked files, etc. They may be ignored.
