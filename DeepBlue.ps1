@@ -518,7 +518,7 @@ function Main {
             # Check command lines
             if ($event.id -eq 1){
                 $creator=$eventXML.Event.EventData.Data[14]."#text"
-                $commandline=$eventXML.Event.EventData.Data[4]."#text"
+                $commandline=$eventXML.Event.EventData.Data[10]."#text"
                 if ($commandline){
                     Check-Command -EventID 1
                 }
