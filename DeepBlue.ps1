@@ -692,6 +692,9 @@ function Check-Command(){
     if ($commandline -Match "\-enc.*[A-Za-z0-9/+=]{100}"){
         $base64= $commandline -Replace "^.* \-Enc(odedCommand)? ",""
     }
+    ElseIf ($commandline -Match "\-En.*[A-Za-z0-9/+=]{100}"){
+            $base64= $commandline -Replace "^.* \-En",""
+    }
     ElseIf ($commandline -Match ":FromBase64String\("){
         $base64 = $commandline -Replace "^.*:FromBase64String\(\'*",""
         $base64 = $base64 -Replace "\'.*$",""
