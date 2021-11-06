@@ -391,7 +391,7 @@ function Main {
             ElseIf ($event.id -eq 7040){
                 # The start type of the Windows Event Log service was changed from auto start to disabled.
                 $servicename=$eventXML.Event.EventData.Data[0]."#text"
-                $action = $eventXML.Event.EventData.Data[1]."#text"
+                $action = $eventXML.Event.EventData.Data[2]."#text"
                 if ($servicename -ccontains "Windows Event Log") {
                     $obj.Results = "Service name: $servicename`n"
                     $obj.Results += $text
