@@ -225,7 +225,7 @@ function Main {
                 $totalsensprivuse+=1
                 # use -eq here to avoid multiple log notices
                 if ($totalsensprivuse -eq $maxtotalsensprivuse) {
-                    $obj.Message = "Sensititive Privilege Use Exceeds Threshold"
+                    $obj.Message = "Sensitive Privilege Use Exceeds Threshold"
                     $obj.Results = "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made.`n"
 
                     $username=$eventXML.Event.EventData.Data[1]."#text"
