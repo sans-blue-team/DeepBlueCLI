@@ -22,7 +22,7 @@ Sample EVTX files are in the .\evtx directory
 - [Output](#output)
 - [Logging setup](#logging-setup)
 - See the [DeepBlue.py Readme](READMEs/README-DeepBlue.py.md) for information on DeepBlue.py
-- See the [DeepWhite Readme](READMEs/README-DeepWhite.md) for information on DeepWhite (detective safelisting using Sysmon event logs)
+- See the [DeepBlueHash Readme](READMEs/README-DeepBlueHash.md) for information on DeepBlueHash (detective safelisting using Sysmon event logs)
 
 ## Usage:
 
@@ -157,7 +157,7 @@ Thank you: [@heinzarelli](https://twitter.com/heinzarelli) and [@HackerHurricane
 
 Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
 
-DeepBlue and DeepWhite currently use Sysmon events, 1, 6 and 7.
+DeepBlue and DeepBlueHash currently use Sysmon events, 1, 6 and 7.
 
 Log SHA256 hashes. Others are fine; DeepWhite will use SHA256.
 

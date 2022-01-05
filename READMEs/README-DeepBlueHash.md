@@ -1,4 +1,4 @@
-# DeepWhite
+# DeepBlueHash
 
 Detective safelisting using Sysmon event logs.
 
@@ -26,7 +26,7 @@ The script assumes a personal API key, and waits 15 seconds between submissions.
 
 Sysmon is required: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
 
-Must log the SHA256 hash, DeepWhite will ignore the others.
+Must log the SHA256 hash, DeepBlueHash will ignore the others.
 
 This minimal Sysmon 6.0 config will log the proper events/hashes. Note that image (DLL) logging may create performance issues. This config ignores DLLs signed by Microsoft (which should lighten the load), but please test!
 
@@ -53,7 +53,7 @@ This minimal Sysmon 6.0 config will log the proper events/hashes. Note that imag
   </EventFiltering>
 </Sysmon>
 ```
-These are the events used by DeepBlueCLI and DeepWhite.
+These are the events used by DeepBlueCLI and DeepBlueHash.
 
 You can go *much* further than this with Sysmon. The Sysinternals Sysmon page has a good basic configuration: https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
 
