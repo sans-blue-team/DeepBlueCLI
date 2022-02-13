@@ -159,5 +159,5 @@ Install Sysmon from Sysinternals: https://docs.microsoft.com/en-us/sysinternals/
 
 DeepBlue and DeepBlueHash currently use Sysmon events, 1, 6 and 7.
 
-Log SHA256 hashes. Others are fine; DeepWhite will use SHA256.
+Log SHA256 hashes. Others are fine; DeepBlueHash will use SHA256.
 
