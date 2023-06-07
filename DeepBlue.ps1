@@ -517,8 +517,14 @@ function Main {
         ElseIf ($logname -eq "Sysmon"){
             # Check command lines
             if ($event.id -eq 1){
-                $creator=$eventXML.Event.EventData.Data[14]."#text"
-                $commandline=$eventXML.Event.EventData.Data[10]."#text"
+                if ($eventXML.Event.EventData.Data.Count -le 16){
+                    $creator=$eventXML.Event.EventData.Data[14]."#text"
+                    $commandline=$eventXML.Event.EventData.Data[10]."#text"
+                }
+                Else {
+				    $creator=$eventXML.Event.EventData.Data[19]."#text"
+				    $commandline=$eventXML.Event.EventData.Data[9]."#text"
+				}
                 if ($commandline){
                     Check-Command -EventID 1
                 }
@@ -528,15 +534,28 @@ function Main {
                 # This can be very chatty, so it's disabled. 
                 # Set $checkunsigned to 1 (global variable section) to enable:
                 if ($checkunsigned){
-                    if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
-                        $obj.Message="Unsigned Image (DLL)"
-                        $image=$eventXML.Event.EventData.Data[3]."#text"
-                        $imageload=$eventXML.Event.EventData.Data[4]."#text"
-                        # $hash=$eventXML.Event.EventData.Data[5]."#text"
-                        $obj.Command=$imageload
-                        $obj.Results=  "Loaded by: $image"
-                        Write-Output $obj
-                     }
+                    if ($event.Properties.Count -lt 14){
+                    	if ($eventXML.Event.EventData.Data[6]."#text" -eq "false"){
+                        	$obj.Message="Unsigned Image (DLL)"
+                        	$image=$eventXML.Event.EventData.Data[3]."#text"
+                        	$imageload=$eventXML.Event.EventData.Data[4]."#text"
+                        	# $hash=$eventXML.Event.EventData.Data[5]."#text"
+                        	$obj.Command=$imageload
+                        	$obj.Results=  "Loaded by: $image"
+                        	Write-Output $obj
+                     	}
+			        }
+			        Else{   
+				        if ($eventXML.Event.EventData.Data[11]."#text" -eq "false"){
+                        	$obj.Message="Unsigned Image (DLL)"
+                        	$image=$eventXML.Event.EventData.Data[4]."#text"
+                        	$imageload=$eventXML.Event.EventData.Data[5]."#text"
+                        	# $hash=$eventXML.Event.EventData.Data[10]."#text"
+                        	$obj.Command=$imageload
+                        	$obj.Results=  "Loaded by: $image"
+                        	Write-Output $obj
+                     	}		 
+                    }
                  }
              }
         }
