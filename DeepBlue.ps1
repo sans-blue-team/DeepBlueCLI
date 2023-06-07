@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 2.01
+# DeepBlueCLI 2.02
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
