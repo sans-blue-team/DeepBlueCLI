@@ -26,5 +26,6 @@ Type,regex,string
 0,Register-ScheduledTask,Command referencing Register-ScheduledTask (possible ASEP)
 0,Software\\Microsoft\\Windows\\CurrentVersion\\Run,Reference to registry run key (possible ASEP)
 0,reg *add,Registry addition (possible ASEP)
+0,cmd.exe.*\\ADMIN\$\\,cmd.exe accessing the ADMIN$ share
 1,^[a-zA-Z]{22}$,Metasploit-style service name: 22 characters, [A-Za-z]
 1,^[a-zA-Z]{16}$,Metasploit-style service name: 16 characters, [A-Za-z]

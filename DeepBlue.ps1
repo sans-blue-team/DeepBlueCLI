@@ -824,6 +824,14 @@ function Check-Creator($command,$creator){
                 $creatortext += "PowerShell launched via WMI: $creator`n"
             }
         }
+        ElseIf ($command -Match "cmd.exe"){
+            if ($creator -Match "PSEXESVC"){
+                $creatortext += "cmd.exe launched via PsExec: $creator`n"
+            }
+            ElseIf($creator -Match "WmiPrvSE"){
+                $creatortext += "cmd.exe launched via WMI: $creator`n"
+            }
+        }
     }
     return $creatortext
 }
