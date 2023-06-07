@@ -522,8 +522,8 @@ function Main {
                     $commandline=$eventXML.Event.EventData.Data[10]."#text"
                 }
                 Else {
-				    $creator=$eventXML.Event.EventData.Data[19]."#text"
-				    $commandline=$eventXML.Event.EventData.Data[9]."#text"
+				    $creator=$eventXML.Event.EventData.Data[20]."#text"
+				    $commandline=$eventXML.Event.EventData.Data[10]."#text"
 				}
                 if ($commandline){
                     Check-Command -EventID 1
