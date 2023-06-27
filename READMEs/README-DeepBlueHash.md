@@ -6,12 +6,18 @@ Parses the Sysmon event logs, grabbing the SHA256 hashes from process creation (
 
 ## VirusTotal and Safelisting setup
 
-**Note**: Virustotal has changed their free API, and now severely limits the number of lookups you can do for free. It was one every 15 seconds, but is now:
+**Note**: Virustotal has changed their free API for some users. My old account has this limitation:
 
  - Daily quota	1 lookups / day
  - Monthly quota	31 lookups / month
 
-I reached to to them to see how much a paid API will cost for this purpose. I may retire this tool if the cost is prohibitive.
+New accounts get this:
+
+ - Request rate	4 lookups / min
+ - Daily quota	500 lookups / day
+ - Monthly quota	15.5 K lookups / month
+
+Not sure why that is, so FYI.
 
 Setting up VirusTotal hash submissions and safelisting:
 
