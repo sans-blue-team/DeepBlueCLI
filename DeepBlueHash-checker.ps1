@@ -1,4 +1,4 @@
-# Requires VirusTotalAnalyzer: https://github.com/darkoperator/Posh-VirusTotal
+# Requires VirusTotalAnalyzer: https://github.com/EvotecIT/VirusTotalAnalyzer
 #
 # Plus a (free) VirusTotal API Key: https://www.virustotal.com/en/documentation/public-api/
 #
