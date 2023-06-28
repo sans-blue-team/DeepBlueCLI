@@ -25,7 +25,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 2.02
+# DeepBlueCLI 3.0
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
@@ -558,6 +558,29 @@ function Main {
                     }
                  }
              }
+             ElseIf ($event.id -eq 8){
+                #Check remote thread (lsass activity, process migration, etc)
+                $image=$eventXML.Event.EventData.Data[7]."#text"
+                $user=$eventXML.Event.EventData.Data[12]."#text"
+                $sourceimage=$eventXML.Event.EventData.Data[4]."#text"
+                If ($image -Match "lsass.exe"){
+                  $creatortext += "Remote thread to $image`n"
+                  $obj.Message="Suspicious remote thread"
+                  $imageload=$eventXML.Event.EventData.Data[7]."#text"
+                  $obj.Command=$imageload
+                  $obj.Results=  "Remote thread created to: $image from: $sourceimage by $user"
+                  Write-Output $obj
+                }
+                ElseIf ($user -notmatch "SYSTEM"){
+                  $creatortext += "Remote thread to $image`n"
+                  $obj.Message="Suspicious remote thread"
+                  $imageload=$eventXML.Event.EventData.Data[7]."#text"
+                  $obj.Command=$imageload
+                  $obj.Results=  "Remote thread created to: $image from: $sourceimage by $user"
+                  Write-Output $obj
+                }
+            }
+
         }
 	ElseIf ($logname -eq "WMI-Activity"){
         # Check commandlines for suspicious commands
@@ -674,7 +697,7 @@ function Create-Filter($file, $logname)
     $app_events="2"
     $applocker_events="8003,8004,8006,8007"
     $powershell_events="4103,4104"
-    $sysmon_events="1,7"
+    $sysmon_events="1,7,8"
 	$wmi_events="5861"
     if ($file -ne ""){
         switch ($logname){
