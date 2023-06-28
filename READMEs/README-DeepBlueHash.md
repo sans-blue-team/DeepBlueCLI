@@ -21,18 +21,12 @@ Not sure why that is, so FYI.
 
 Setting up VirusTotal hash submissions and safelisting:
 
-The hash checker requires Post-VirusTotal:
-
- - https://github.com/darkoperator/Posh-VirusTotal
+The hash checker requires VirusTotalAnalyzer: https://github.com/darkoperator/Posh-VirusTotal
 
 It also requires a VirusTotal API key: 
 
  - https://www.virustotal.com/en/documentation/public-api/
 
-Then configure your VirusTotal API key:
-```powershell
-set-VTAPIKey -APIKey <API Key>
-```
 The script assumes a personal API key, and waits 15 seconds between submissions.
 
 ## Sysmon setup
