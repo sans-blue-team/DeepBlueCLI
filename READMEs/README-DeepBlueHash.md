@@ -21,7 +21,7 @@ Not sure why that is, so FYI.
 
 Setting up VirusTotal hash submissions and safelisting:
 
-The hash checker requires VirusTotalAnalyzer: https://github.com/darkoperator/Posh-VirusTotal
+The hash checker requires VirusTotalAnalyzer: https://github.com/EvotecIT/VirusTotalAnalyzer
 
 It also requires a VirusTotal API key: 
 
