@@ -20,6 +20,12 @@ Process evtx file:
 
 .\DeepBlue.ps1 .\evtx\new-user-security.evtx
 .\DeepBlue.ps1 -file .\evtx\new-user-security.evtx
+
+.Example
+Process ForwardedEvent Log for Security Events:
+
+.\DeepBlue.ps1 -log security -Read_ForwardedLog
+
 .LINK
 https://github.com/sans-blue-team/DeepBlueCLI
 
@@ -54,7 +60,7 @@ function Main {
     $safelist = Get-Content ".\safelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
     $logname=Check-Options $file $log
     #"Processing the " + $logname + " log..."
-    $filter=Create-Filter $file $logname
+    $filter=Create-Filter $file $logname $Read_ForwardedLog
     # Password guessing/spraying variables:
     $maxfailedlogons=5 # Alert after this many failed logons
     $failedlogons=@{}   # HashTable of failed logons per user
@@ -738,7 +744,8 @@ function Create-Filter($file, $logname, $readfwdlog)
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
-    elseif($readfwdlog -ne ""){
+    elseif($readfwdlog){
+        Write-Warning "Reading the Forwarded Event log may take considerable time..."
         switch ($logname){
             "Security"    {$filter="@{Logname=""ForwardedEvents"";ID=$sec_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($sec_providers)}"}
             "System"      {$filter="@{Logname=""ForwardedEvents"";ID=$sys_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($sys_providers)}"}
