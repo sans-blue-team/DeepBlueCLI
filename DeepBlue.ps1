@@ -31,7 +31,7 @@ https://github.com/sans-blue-team/DeepBlueCLI
 # Twitter: @eric_conrad
 # http://ericconrad.com
 #
-
+[cmdletbinding(DefaultParameterSetName="OnlineLog")]
 param (
 [Parameter(ParameterSetName="OfflineLog")]
 [string]$file=$env:file,
@@ -84,7 +84,7 @@ function Main {
     #
     # Get the events:
     try{
-        $events = iex "Get-WinEvent $filter -ErrorAction Stop"
+        $events = iex "Get-WinEvent $filter"
     }
     catch {
         Write-Host "Get-WinEvent $filter -ErrorAction Stop"
@@ -728,13 +728,13 @@ function Create-Filter($file, $logname, $readfwdlog)
 
     if ($file -ne ""){
         switch ($logname){
-            "Security"    {$filter="@{path=""$file"";ID=$sec_events}"}
-            "System"      {$filter="@{path=""$file"";ID=$sys_events}"}
-            "Application" {$filter="@{path=""$file"";ID=$app_events}"}
-            "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events}"}
-            "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
-            "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events}"}
-	        "WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events}"}
+            "Security"    {$filter="@{path=""$file"";ID=$sec_events} -ErrorAction Stop"}
+            "System"      {$filter="@{path=""$file"";ID=$sys_events} -ErrorAction Stop"}
+            "Application" {$filter="@{path=""$file"";ID=$app_events} -ErrorAction Stop"}
+            "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events} -ErrorAction Stop"}
+            "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events} -ErrorAction Stop"}
+            "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events} -ErrorAction Stop"}
+	        "WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events} -ErrorAction Stop"}
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
@@ -752,13 +752,13 @@ function Create-Filter($file, $logname, $readfwdlog)
     }    
     else{
         switch ($logname){
-            "Security"    {$filter="@{Logname=""Security"";ID=$sec_events}"}
-            "System"      {$filter="@{Logname=""System"";ID=$sys_events}"}
+            "Security"    {$filter="@{Logname=""Security"";ID=$sec_events} -ErrorAction Stop"}
+            "System"      {$filter="@{Logname=""System"";ID=$sys_events} -ErrorAction Stop"}
             "Application" {$filter="@{Logname=""Application"";ID=$app_events}"}
-            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events}"}
-            "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
-            "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
-	        "WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events}"}
+            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events} -ErrorAction Stop"}
+            "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events} -ErrorAction Stop"}
+            "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events} -ErrorAction Stop"}
+	        "WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events} -ErrorAction Stop"}
             default       {"Logic error 2, should not reach here...";Exit 1}
         }
     }
