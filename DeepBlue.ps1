@@ -20,19 +20,35 @@ Process evtx file:
 
 .\DeepBlue.ps1 .\evtx\new-user-security.evtx
 .\DeepBlue.ps1 -file .\evtx\new-user-security.evtx
+
+.Example
+Process ForwardedEvent Log for Security Events:
+
+.\DeepBlue.ps1 -log security -Read_ForwardedLog
+
 .LINK
 https://github.com/sans-blue-team/DeepBlueCLI
 
 #>
 
-# DeepBlueCLI 3.0
+# DeepBlueCLI 3.1
 # Eric Conrad, Backshore Communications, LLC
 # deepblue <at> backshore <dot> net
 # Twitter: @eric_conrad
 # http://ericconrad.com
 #
+[cmdletbinding(DefaultParameterSetName="OnlineLog")]
+param (
+[Parameter(ParameterSetName="OfflineLog")]
+[string]$file=$env:file,
 
-param ([string]$file=$env:file,[string]$log=$env:log)
+[Parameter(ParameterSetName="OnlineLog")]
+[ValidateSet("Security","System","Application","Applocker","WMI-Activity","PowerShell","Sysmon")]
+[string]$log,
+
+[Parameter(ParameterSetName="OnlineLog")]
+[Switch]$Read_ForwardedLog
+)
 
 function Main {
     # Set up the global variables
@@ -44,7 +60,7 @@ function Main {
     $safelist = Get-Content ".\safelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
     $logname=Check-Options $file $log
     #"Processing the " + $logname + " log..."
-    $filter=Create-Filter $file $logname
+    $filter=Create-Filter $file $logname $Read_ForwardedLog
     # Password guessing/spraying variables:
     $maxfailedlogons=5 # Alert after this many failed logons
     $failedlogons=@{}   # HashTable of failed logons per user
@@ -74,7 +90,7 @@ function Main {
     #
     # Get the events:
     try{
-        $events = iex "Get-WinEvent $filter -ErrorAction Stop"
+        $events = iex "Get-WinEvent $filter"
     }
     catch {
         Write-Host "Get-WinEvent $filter -ErrorAction Stop"
@@ -87,6 +103,7 @@ function Main {
         $obj = [PSCustomObject]@{
             Date    = $event.TimeCreated
             Log     = $logname
+            Host    = $event.MachineName
             EventID = $event.id
             Message = $event.message
             Results = ""
@@ -643,11 +660,17 @@ function Check-Options($file, $log)
         ElseIf ($log -eq "Application"){
             $logname="Application"
         }
+        ElseIf ($log -eq "Applocker"){
+            $logname="Applocker"
+        }
         ElseIf ($log -eq "Sysmon"){
             $logname="Sysmon"
         }
-            ElseIf ($log -eq "Powershell"){
+        ElseIf ($log -eq "Powershell"){
             $logname="Powershell"
+        }
+        ElseIf ($log -eq "WMI-Activity"){
+            $logname="WMI-Activity"
         }
         Else{
             write-host $log_error
@@ -676,7 +699,7 @@ function Check-Options($file, $log)
                 "Microsoft-Windows-AppLocker/EXE and DLL"   {$logname="Applocker"}
                 "Microsoft-Windows-PowerShell/Operational"   {$logname="Powershell"}
                 "Microsoft-Windows-Sysmon/Operational"   {$logname="Sysmon"}
-		"Microsoft-Windows-WMI-Activity/Operational" {$logname="WMI-Activity"}
+		        "Microsoft-Windows-WMI-Activity/Operational" {$logname="WMI-Activity"}
                 default       {"Logic error 3, should not reach here...";Exit 1}
             }
         }
@@ -688,7 +711,7 @@ function Check-Options($file, $log)
     return $logname
 }
 
-function Create-Filter($file, $logname)
+function Create-Filter($file, $logname, $readfwdlog)
 {
     # Return the Get-Winevent filter 
     #
@@ -699,27 +722,50 @@ function Create-Filter($file, $logname)
     $powershell_events="4103,4104"
     $sysmon_events="1,7,8"
 	$wmi_events="5861"
+    
+    #provider names for events, notice formatting for multiple providers this is important for forwarded events.
+    $sec_providers = "'Microsoft-Windows-Security-Auditing','Microsoft-Windows-Eventlog'"
+    $sys_providers = "'Service Control Manager','Microsoft-Windows-Eventlog'"
+    $app_providers = '"EMET"'
+    $applock_providers = '"Microsoft-Windows-AppLocker"'
+    $wmi_providers = '"Microsoft-Windows-WMI-Activity"'
+    $powershell_providers = '"Microsoft-Windows-PowerShell"'
+    $sysmon_providers = '"Microsoft-Windows-Sysmon"'
+
     if ($file -ne ""){
         switch ($logname){
-            "Security"    {$filter="@{path=""$file"";ID=$sec_events}"}
-            "System"      {$filter="@{path=""$file"";ID=$sys_events}"}
-            "Application" {$filter="@{path=""$file"";ID=$app_events}"}
-            "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events}"}
-            "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events}"}
-            "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events}"}
-	    "WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events}"}
+            "Security"    {$filter="@{path=""$file"";ID=$sec_events} -ErrorAction Stop"}
+            "System"      {$filter="@{path=""$file"";ID=$sys_events} -ErrorAction Stop"}
+            "Application" {$filter="@{path=""$file"";ID=$app_events} -ErrorAction Stop"}
+            "Applocker"   {$filter="@{path=""$file"";ID=$applocker_events} -ErrorAction Stop"}
+            "Powershell"  {$filter="@{path=""$file"";ID=$powershell_events} -ErrorAction Stop"}
+            "Sysmon"      {$filter="@{path=""$file"";ID=$sysmon_events} -ErrorAction Stop"}
+	        "WMI-Activity"{$filter="@{path=""$file"";ID=$wmi_events} -ErrorAction Stop"}
             default       {"Logic error 1, should not reach here...";Exit 1}
         }
     }
+    elseif($readfwdlog){
+        Write-Warning "Reading the Forwarded Event log may take considerable time..."
+        switch ($logname){
+            "Security"    {$filter="@{Logname=""ForwardedEvents"";ID=$sec_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($sec_providers)}"}
+            "System"      {$filter="@{Logname=""ForwardedEvents"";ID=$sys_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($sys_providers)}"}
+            "Application" {$filter="@{Logname=""ForwardedEvents"";ID=$app_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($app_providers)}"}
+            "Applocker"   {$filter="@{Logname=""ForwardedEvents"";ID=$applocker_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($applock_providers)}"}
+            "Powershell"  {$filter="@{Logname=""ForwardedEvents"";ID=$powershell_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($powershell_providers)}"}
+            "Sysmon"      {$filter="@{Logname=""ForwardedEvents"";ID=$sysmon_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($sysmon_providers)}"}
+	        "WMI-Activity"{$filter="@{Logname=""ForwardedEvents"";ID=$wmi_events} -ErrorAction Stop | ?{`$_.ProviderName -in @($wmi_providers)}"}
+            default       {"Logic error 2, should not reach here...";Exit 1}
+        }
+    }    
     else{
         switch ($logname){
-            "Security"    {$filter="@{Logname=""Security"";ID=$sec_events}"}
-            "System"      {$filter="@{Logname=""System"";ID=$sys_events}"}
+            "Security"    {$filter="@{Logname=""Security"";ID=$sec_events} -ErrorAction Stop"}
+            "System"      {$filter="@{Logname=""System"";ID=$sys_events} -ErrorAction Stop"}
             "Application" {$filter="@{Logname=""Application"";ID=$app_events}"}
-            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events}"}
-            "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events}"}
-            "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events}"}
-	    "WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events}"}
+            "Applocker"   {$filter="@{logname=""Microsoft-Windows-AppLocker/EXE and DLL"";ID=$applocker_events} -ErrorAction Stop"}
+            "Powershell"  {$filter="@{logname=""Microsoft-Windows-PowerShell/Operational"";ID=$powershell_events} -ErrorAction Stop"}
+            "Sysmon"      {$filter="@{logname=""Microsoft-Windows-Sysmon/Operational"";ID=$sysmon_events} -ErrorAction Stop"}
+	        "WMI-Activity"{$filter="@{logname=""Microsoft-Windows-WMI-Activity/Operational"";ID=$wmi_events} -ErrorAction Stop"}
             default       {"Logic error 2, should not reach here...";Exit 1}
         }
     }
@@ -867,4 +913,3 @@ function Remove-Spaces($string){
 }
 
 . Main
-
